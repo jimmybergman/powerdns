@@ -454,24 +454,6 @@ public:
 private:
 };
 
-
-class URLRecordContent : public DNSRecordContent // Fake, 'fancy record' with type 256
-{
-public:
-  includeboilerplate(URL)
-private:
-  string d_url;
-};
-
-class MBOXFWRecordContent : public DNSRecordContent // Fake, 'fancy record' with type 256
-{
-public:
-  includeboilerplate(MBOXFW)
-private:
-  string d_mboxfw;
-};
-
-
 #define boilerplate(RNAME, RTYPE)                                                                         \
 RNAME##RecordContent::DNSRecordContent* RNAME##RecordContent::make(const DNSRecord& dr, PacketReader& pr) \
 {                                                                                                  \
@@ -547,6 +529,5 @@ bool getEDNSOpts(const MOADNSParser& mdp, EDNSOpts* eo);
 void reportBasicTypes();
 void reportOtherTypes();
 void reportAllTypes();
-void reportFancyTypes();
 
 #endif 

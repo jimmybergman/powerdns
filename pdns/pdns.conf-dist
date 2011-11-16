@@ -75,11 +75,6 @@
 # do-ipv6-additional-processing=no
 
 #################################
-# fancy-records	Process URL and MBOXFW records
-#
-# fancy-records=no
-
-#################################
 # guardian	Run within a guardian process
 #
 # guardian=no
@@ -323,11 +318,6 @@
 # webserver-print-arguments	If the webserver should print arguments
 #
 # webserver-print-arguments=no
-
-#################################
-# wildcard-url	Process URL and MBOXFW records
-#
-# wildcard-url=no
 
 #################################
 # wildcards	Honor wildcards in the database

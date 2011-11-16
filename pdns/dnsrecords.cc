@@ -290,17 +290,6 @@ uint16_t DNSKEYRecordContent::getTag()
   return ac & 0xFFFF;
 }
 
-// "fancy records" 
-boilerplate_conv(URL, QType::URL, 
-        	 conv.xfrLabel(d_url);
-        	 )
-
-boilerplate_conv(MBOXFW, QType::MBOXFW, 
-        	 conv.xfrLabel(d_mboxfw);
-        	 )
-
-
-
 bool getEDNSOpts(const MOADNSParser& mdp, EDNSOpts* eo)
 {
   if(mdp.d_header.arcount && !mdp.d_answers.empty()) {
@@ -364,12 +353,6 @@ void reportOtherTypes()
    DLVRecordContent::report();
    DNSRecordContent::regist(0xff, QType::TSIG, &TSIGRecordContent::make, &TSIGRecordContent::make, "TSIG");
    OPTRecordContent::report();
-}
-
-void reportFancyTypes()
-{
-  URLRecordContent::report();
-  MBOXFWRecordContent::report();
 }
 
 void reportAllTypes()

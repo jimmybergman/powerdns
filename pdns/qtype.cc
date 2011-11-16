@@ -70,10 +70,7 @@ QType::QType()
       insert("IXFR",251);
       insert("AXFR",252);
       insert("ANY",255);
-      insert("URL",256);
-      insert("MBOXFW",257);
-      insert("CURL",258);
-      insert("ADDR",259);
+      insert("ADDR",259); // internal A+AAAA type for the recursor
       insert("DLV",32769);
       insert("TLSA",65468);
     }

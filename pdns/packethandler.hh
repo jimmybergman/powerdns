@@ -87,9 +87,6 @@ private:
   int trySuperMaster(DNSPacket *p);
   int makeCanonic(DNSPacket *p, DNSPacket *r, string &target);
   int doWildcardRecords(DNSPacket *p, DNSPacket *r, string &target);
-  int findMboxFW(DNSPacket *p, DNSPacket *r, string &target);
-  int findUrl(DNSPacket *p, DNSPacket *r, string &target);
-  int doFancyRecords(DNSPacket *p, DNSPacket *r, string &target);
   int doVersionRequest(DNSPacket *p, DNSPacket *r, string &target);
   int doDNSKEYRequest(DNSPacket *p, DNSPacket *r, const SOAData& sd);
   int doNSEC3PARAMRequest(DNSPacket *p, DNSPacket *r, const SOAData& sd);
@@ -116,7 +113,6 @@ private:
   void completeANYRecords(DNSPacket *p, DNSPacket*r, SOAData& sd, const string &target);
   
   static int s_count;
-  bool d_doFancyRecords;
   bool d_doRecursion;
   bool d_doWildcards;
   bool d_doCNAME;
