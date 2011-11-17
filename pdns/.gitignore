@@ -6,3 +6,11 @@
 /pdns
 /showvar
 /stamp-h
+/pdns_control
+/pdns_server
+/pdns_recursor
+/pdnssec
+/precursor
+/sdig
+/dnslabeltext.cc
+/dnsreplay
