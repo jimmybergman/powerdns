@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Master operation</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="replication.html" title="Chapter 17. Master/Slave operation &amp; replication" /><link rel="prev" href="slave.html" title="2. Slave operation" /><link rel="next" href="fancy-records.html" title="Chapter 18. Fancy records for seamless email and URL integration" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Master operation</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="slave.html">Prev</a> </td><th width="60%" align="center">Chapter 17. Master/Slave operation &amp; replication</th><td width="20%" align="right"> <a accesskey="n" href="fancy-records.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Master operation"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="master"></a>3. Master operation</h2></div></div></div><p>
+	When operating as a master, PDNS sends out notifications of changes to slaves, which react to these notifications by querying PDNS to see
+	if the zone changed, and transferring its contents if it has. Notifications are a way to promptly propagate zone changes to slaves, as 
+	described in RFC 1996.
+      </p><p>
+	</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	    Master support is OFF by default, turn it on by adding <span class="command"><strong>master</strong></span> to the configuration. The same 
+	    holds for slave operation. Both can be on simultaneously.
+	  </p></td></tr></table></div><p>
+      </p><p>
+	Left open by RFC 1996 is who is to be notified - which is harder to figure out than it sounds. All slaves for this domain must receive a notification
+	but the nameserver only knows the names of the slaves - not the IP addresses, which is where the problem lies. The nameserver itself might
+	be authoritative for the name of its secondary, but not have the data available.
+      </p><p>
+	To resolve this issue, PDNS tries multiple tactics to figure out the IP addresses of the slaves, and notifies everybody. In contrived configurations
+	this may lead to duplicate notifications being sent out, which shouldn't hurt.
+      </p><p>
+	Some backends may be able to detect zone changes, others may chose to let the operator indicate which zones have changed and which haven't.
+	Consult the documentation for your backend to see how it processes changes in zones.
+      </p><p>
+	To help deal with slaves that may have missed notifications, or have failed to respond to them, several override commands are available via 
+	the pdns_control tool (<a class="xref" href="pdns-internals.html#pdnscontrol" title="1.1. pdns_control">Section 1.1, “pdns_control”</a>):
+      </p><p>
+	</p><div class="variablelist"><dl><dt><span class="term">pdns_control notify <span class="command"><strong>domain</strong></span></span></dt><dd><p>
+		This instructs PDNS to notify all IP addresses it considers to be slaves of this domain. 
+	      </p></dd><dt><span class="term">pdns_control notify-host <span class="command"><strong>domain ip-address</strong></span></span></dt><dd><p>
+		This is truly an override and sends a notification to an arbitrary IP address. Can be used in 'also-notify' situations
+		or when PDNS has trouble figuring out who to notify - which may happen in contrived configurations.
+	      </p></dd></dl></div><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="slave.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="replication.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="fancy-records.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Slave operation </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 18. Fancy records for seamless email and URL integration</td></tr></table></div></body></html>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix B. PDNS internals</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="luabackend.html" title="16. Lua Backend" /><link rel="next" href="guardian.html" title="2. Guardian" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix B. PDNS internals</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="luabackend.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="guardian.html">Next</a></td></tr></table><hr /></div><div class="appendix" title="Appendix B. PDNS internals"><div class="titlepage"><div><div><h2 class="title"><a id="pdns-internals"></a>Appendix B. PDNS internals</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="pdns-internals.html#controlsocket">1. Controlsocket</a></span></dt><dd><dl><dt><span class="sect2"><a href="pdns-internals.html#pdnscontrol">1.1. pdns_control</a></span></dt></dl></dd><dt><span class="sect1"><a href="guardian.html">2. Guardian</a></span></dt><dt><span class="sect1"><a href="modules.html">3. Modules &amp; Backends</a></span></dt><dt><span class="sect1"><a href="dns-to-query.html">4. How PDNS translates DNS queries into backend queries</a></span></dt></dl></div><p>
+      PDNS is normally launched by the init.d script but is actually a binary called <code class="filename">pdns_server</code>. This 
+      file is started by the <span class="command"><strong>start</strong></span> and <span class="command"><strong>monitor</strong></span> commands to the init.d script. Other commands
+      are implemented using the controlsocket.
+    </p><div class="sect1" title="1. Controlsocket"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="controlsocket"></a>1. Controlsocket</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="pdns-internals.html#pdnscontrol">1.1. pdns_control</a></span></dt></dl></div><p>
+        The controlsocket is the means to contact a running PDNS daemon, or as we now know, a running <code class="filename">pdns_server</code>.
+        Over this sockets, instructions can be sent using the <code class="filename">pdns_control</code> program. Like the <code class="filename">pdns_server</code>,
+        this program is normally accessed via the init.d script.
+      </p><div class="sect2" title="1.1. pdns_control"><div class="titlepage"><div><div><h3 class="title"><a id="pdnscontrol"></a>1.1. pdns_control</h3></div></div></div><p>
+	  To communicate with PDNS over the controlsocket, the <span class="command"><strong>pdns_control</strong></span> command is used. The init.d script also calls 
+	  pdns_control. The syntax is simple: <span class="command"><strong>pdns_control command arguments</strong></span>. Currently this is most useful for telling backends
+	  to rediscover domains or to force the transmission of notifications. See <a class="xref" href="master.html" title="3. Master operation">Section 3, “Master operation”</a>.
+	</p><p>
+	  Besides the commands implemented by the init.d script, for which see <a class="xref" href="pdns-on-unix.html" title="3. Running PDNS on unix">Section 3, “Running PDNS on unix”</a>, the following pdns_control commands
+	  are available:
+	  </p><div class="variablelist"><dl><dt><span class="term">ccounts</span></dt><dd><p>
+		  Returns counts on the contents of the cache.
+		</p></dd><dt><span class="term">notify <strong class="userinput"><code>domain</code></strong></span></dt><dd><p>
+		  Adds a domain to the notification list, causing PDNS to send out notifications to the nameservers of a domain. Can be used if 
+		  a slave missed previous notifications or is generally hard of hearing.
+		</p></dd><dt><span class="term">notify-host <strong class="userinput"><code>domain</code></strong> <strong class="userinput"><code>host</code></strong></span></dt><dd><p>
+		  Same as above but with operator specified IP address as destination, to be used if you know better than PowerDNS.
+		</p></dd><dt><span class="term">purge</span></dt><dd><p>
+		  Purges the entire Packet Cache - see <a class="xref" href="performance.html" title="Chapter 9. Authoritative Server Performance">Chapter 9, <i>Authoritative Server Performance</i></a>.
+		</p></dd><dt><span class="term">purge <strong class="userinput"><code>record</code></strong></span></dt><dd><p>
+		  Purges all entries for this exact record name - see <a class="xref" href="performance.html" title="Chapter 9. Authoritative Server Performance">Chapter 9, <i>Authoritative Server Performance</i></a>.
+		</p></dd><dt><span class="term">purge <strong class="userinput"><code>record</code></strong>$</span></dt><dd><p>
+		  Purges all cache entries ending on this name, effectively purging an entire domain - see <a class="xref" href="performance.html" title="Chapter 9. Authoritative Server Performance">Chapter 9, <i>Authoritative Server Performance</i></a>.
+		</p></dd><dt><span class="term">purge</span></dt><dd><p>
+		  Purges the entire Packet Cache - see <a class="xref" href="performance.html" title="Chapter 9. Authoritative Server Performance">Chapter 9, <i>Authoritative Server Performance</i></a>.
+		</p></dd><dt><span class="term">purge <strong class="userinput"><code>record</code></strong></span></dt><dd><p>
+		  Purges all entries for this exact record name - see <a class="xref" href="performance.html" title="Chapter 9. Authoritative Server Performance">Chapter 9, <i>Authoritative Server Performance</i></a>.
+		</p></dd><dt><span class="term">rediscover</span></dt><dd><p>
+		  Instructs backends that new domains may have appeared in the database, or, in the case of the Bind backend, in
+		  named.conf.
+		</p></dd><dt><span class="term">reload</span></dt><dd><p>
+		  Instructs backends that the contents of domains may have changed. Many backends ignore this, the Bind backend will check
+		  timestamps for all zones (once queries come in for it) and reload if needed.
+		</p></dd><dt><span class="term">retrieve <strong class="userinput"><code>domain</code></strong></span></dt><dd><p>
+		  Retrieve a slave domain from its master. Done nearly immediatly.
+		</p></dd><dt><span class="term">set <strong class="userinput"><code>variable value</code></strong></span></dt><dd><p>
+		  Set a configuration parameter. Currently only the 'query-logging' parameter can be set. 
+		</p></dd><dt><span class="term">uptime</span></dt><dd><p>
+		  Reports the uptime of the daemon in human readable form.
+		</p></dd><dt><span class="term">version</span></dt><dd><p>
+		  returns the version of a running pdns daemon.
+		</p></dd></dl></div><p>
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="luabackend.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="guardian.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">16. Lua Backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Guardian</td></tr></table></div></body></html>

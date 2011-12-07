@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 6. Logging &amp; Monitoring Authoritative Server performance</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="pipebackend-dynamic-resolution.html" title="Chapter 5. Dynamic resolution using the PipeBackend" /><link rel="next" href="init-d-commands.html" title="2. Via init.d commands" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 6. Logging &amp; Monitoring Authoritative Server performance</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="pipebackend-dynamic-resolution.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="init-d-commands.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 6. Logging &amp; Monitoring Authoritative Server performance"><div class="titlepage"><div><div><h2 class="title"><a id="monitoring"></a>Chapter 6. Logging &amp; Monitoring Authoritative Server performance</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="monitoring.html#webserver">1. Webserver</a></span></dt><dt><span class="sect1"><a href="init-d-commands.html">2. Via init.d commands</a></span></dt><dt><span class="sect1"><a href="syslog.html">3. Operational logging using syslog</a></span></dt></dl></div><p>
+      In a production environment, you will want to be able to monitor PDNS performance. For this purpose, currently 
+      two methods are available, the webserver and the init.d
+<span class="command"><strong>dump</strong></span>, <span class="command"><strong>show</strong></span> and 
+      <span class="command"><strong>mrtg</strong></span>, commands. Furthermore, PDNS can perform a configurable amount of operational logging. This chapter
+	also explains how to configure syslog for best results.
+    </p><div class="sect1" title="1. Webserver"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="webserver"></a>1. Webserver</h2></div></div></div><p>
+	To launch the internal webserver, add a <span class="command"><strong>webserver</strong></span> statement to the pdns.conf. This 
+	will instruct the PDNS daemon to start a webserver on localhost at port 8081, without password protection. 
+	Only local users (on the same host) will be able to access the webserver by default.
+
+	The webserver 	lists a lot of information about the PDNS process, including frequent queries, frequently failing queries, 
+	lists of remote hosts sending queries, hosts sending corrupt queries etc. The webserver does not allow
+	remote management of the daemon.
+
+	The following nameserver related configuration items are available:
+	</p><div class="variablelist"><dl><dt><span class="term">webserver</span></dt><dd><p>
+		If set to anything but 'no', a webserver is launched.
+	      </p></dd><dt><span class="term">webserver-address</span></dt><dd><p>
+		Address to bind the webserver to. Defaults to 127.0.0.1, which implies that only the local computer
+		is able to connect to the nameserver! To allow remote hosts to connect, change to 0.0.0.0 or the
+		physical IP address of your nameserver.
+	      </p></dd><dt><span class="term">webserver-password</span></dt><dd><p>
+	      If set, viewers will have to enter this plaintext password in order to gain access to the statistics.
+	    </p></dd><dt><span class="term">webserver-port</span></dt><dd><p>
+		Port to bind the webserver to. Defaults to 8081.
+	      </p></dd></dl></div><p>
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pipebackend-dynamic-resolution.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="init-d-commands.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 5. Dynamic resolution using the PipeBackend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Via init.d commands</td></tr></table></div></body></html>

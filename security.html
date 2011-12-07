@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 7. Security settings &amp; considerations</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="syslog.html" title="3. Operational logging using syslog" /><link rel="next" href="considerations.html" title="2. Considerations" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 7. Security settings &amp; considerations</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="syslog.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="considerations.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 7. Security settings &amp; considerations"><div class="titlepage"><div><div><h2 class="title"><a id="security"></a>Chapter 7. Security settings &amp; considerations</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="security.html#settings">1. Settings</a></span></dt><dd><dl><dt><span class="sect2"><a href="security.html#id405652">1.1. Running as a less privileged identity</a></span></dt><dt><span class="sect2"><a href="security.html#id405680">1.2. Jailing the process in a chroot</a></span></dt></dl></dd><dt><span class="sect1"><a href="considerations.html">2. Considerations</a></span></dt></dl></div><div class="sect1" title="1. Settings"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="settings"></a>1. Settings</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="security.html#id405652">1.1. Running as a less privileged identity</a></span></dt><dt><span class="sect2"><a href="security.html#id405680">1.2. Jailing the process in a chroot</a></span></dt></dl></div><p>PDNS has several options to easily allow it to run more securely. Most notable are the <span class="command"><strong>chroot</strong></span>, 
+	<span class="command"><strong>setuid</strong></span> and <span class="command"><strong>setgid</strong></span> options which can be specified.</p><p>
+	For additional information on PowerDNS security, PowerDNS security incidents and PowerDNS security policy, see <a class="xref" href="security-policy.html" title="4. Security">Section 4, “Security”</a>.
+      </p><div class="sect2" title="1.1. Running as a less privileged identity"><div class="titlepage"><div><div><h3 class="title"><a id="id405652"></a>1.1. Running as a less privileged identity</h3></div></div></div><p>
+	  By specifying <span class="command"><strong>setuid</strong></span> and <span class="command"><strong>setgid</strong></span>, PDNS changes to this identity shortly after
+	  binding to the privileged DNS ports. These options are highly recommended. It is suggested that a separate identity
+	  is created for PDNS as the user 'nobody' is in fact quite powerful on most systems.
+	</p><p>
+	  Both these parameters can be specified either numerically or as real names.
+	  You should set these parameters immediately if they are not set!
+	</p></div><div class="sect2" title="1.2. Jailing the process in a chroot"><div class="titlepage"><div><div><h3 class="title"><a id="id405680"></a>1.2. Jailing the process in a chroot</h3></div></div></div><p>
+	  The <span class="command"><strong>chroot</strong></span> option secures PDNS to its own directory so that even if it should become compromised and
+	  under control of external influences, it will have a hard time affecting the rest of the system.
+	</p><p>
+	  Even though this will hamper hackers a lot, chroot jails have been known to be broken. 
+	</p><p>
+	  </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	      When chrooting PDNS, take care that backends will be able to get to their files. Many databases need access to a UNIX 
+	      domain socket which should live within the chroot. It is often possible to hardlink such a socket into the chroot dir.
+	    </p><p>
+	      When running with master or slave support, be aware that many operating systems need access to specific libraries
+	      (ofen <code class="filename">/lib/libnss*</code>) in order to support resolution of domain names! You can also hardlink these.
+	    </p><p>
+	      In addition, make sure that <code class="filename">/dev/log</code> is available from within the chroot. Logging will silently fail
+	      over time otherwise (on logrotate).
+	    </p></td></tr></table></div><p>
+	</p><p>
+	  The default PDNS configuration is best chrooted to <code class="filename">./</code>, which boils down to the configured location
+	  of the controlsocket. 
+	</p><p>
+	  This is achieved by adding the following to pdns.conf: <span class="command"><strong>chroot=./</strong></span>, and restarting PDNS.
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="syslog.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="considerations.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Operational logging using syslog </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Considerations</td></tr></table></div></body></html>

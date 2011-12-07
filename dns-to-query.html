@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>4. How PDNS translates DNS queries into backend queries</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="pdns-internals.html" title="Appendix B. PDNS internals" /><link rel="prev" href="modules.html" title="3. Modules &amp; Backends" /><link rel="next" href="backend-writers-guide.html" title="Appendix C. Backend writers' guide" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">4. How PDNS translates DNS queries into backend queries</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="modules.html">Prev</a> </td><th width="60%" align="center">Appendix B. PDNS internals</th><td width="20%" align="right"> <a accesskey="n" href="backend-writers-guide.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="4. How PDNS translates DNS queries into backend queries"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="dns-to-query"></a>4. How PDNS translates DNS queries into backend queries</h2></div></div></div><p>
+	A DNS query is not a straightforward lookup. Many DNS queries need to check the backend for additional data, for example to
+	determine of an unfound record should lead to an NXDOMAIN ('we know about this domain, but that record does not exist') or an 
+	unauthoritative response.
+      </p><p>
+	Simplified, without CNAME processing and wildcards, the algorithm is like this:
+      </p><p>
+	When a query for a <span class="command"><strong>qname</strong></span>/<span class="command"><strong>qtype</strong></span> tuple comes in, it is requested directly from the backend. 
+	If present, PDNS adds the contents of the reply to the list of records to return. A question tuple may generate multiple answer 
+	records.
+      </p><p>
+	Each of these records is now investigated to see if it needs 'additional processing'. This holds for example for MX records which may
+	point to hosts for which the PDNS backends also contain data. This involves further lookups for A or AAAA records.
+      </p><p>
+	After all additional processing has been performed, PDNS sieves out all double records which may well have appeared. The resulting set of 
+	records is added to the answer packet, and sent out.
+      </p><p>
+	A zone transfer works by looking up the <span class="command"><strong>domain_id</strong></span> of the SOA record of the name and then listing all records of that 
+	<span class="command"><strong>domain_id</strong></span>. This is why all records in a domain need to have the same domain_id.
+      </p><p>
+	When a query comes in for an unknown domain, PDNS starts looking for SOA records of all subdomains of the qname, so 
+	no.such.powerdns.com turns into a SOA query for no.such.powerdns.com, such.powerdns.com, powerdns.com, com, ''. When a SOA is found,
+	that zone is consulted for relevant NS instructions which lead to a referral. If nothing is found within the zone, an authoritative 
+	NXDOMAIN is sent out.
+      </p><p>
+	If no SOA was found, an unauthoritative no-error is returned.
+      </p><p>
+	In reality, each query for a question tuple first involves checking for a CNAME, unless that resolution has been disabled with the
+	<span class="command"><strong>skip-cname</strong></span> option.
+      </p><p>
+	PDNS breaks strict RFC compatibility by not always checking for the presence of a SOA record first. This is unlikely to lead to 
+	problems though.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="modules.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="pdns-internals.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="backend-writers-guide.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Modules &amp; Backends </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Appendix C. Backend writers' guide</td></tr></table></div></body></html>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>8. Modes of operation</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdnssec-auth.html" title="Chapter 12. Serving authoritative DNSSEC data" /><link rel="prev" href="dnssec-operational-doctrine.html" title="7. Operational instructions" /><link rel="next" href="dnssec-security.html" title="9. Security" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">8. Modes of operation</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="dnssec-operational-doctrine.html">Prev</a> </td><th width="60%" align="center">Chapter 12. Serving authoritative DNSSEC data</th><td width="20%" align="right"> <a accesskey="n" href="dnssec-security.html">Next</a></td></tr></table><hr /></div><div class="section" title="8. Modes of operation"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="dnssec-modes"></a>8. Modes of operation</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="dnssec-modes.html#dnssec-presigned">8.1. PowerDNSSEC Pre-signed records</a></span></dt><dt><span class="section"><a href="dnssec-modes.html#dnssec-frontserver">8.2. PowerDNSSEC Front-signing</a></span></dt><dt><span class="section"><a href="dnssec-modes.html#dnssec-bind-hybrid">8.3. PowerDNSSEC hybrid BIND-mode operation</a></span></dt><dt><span class="section"><a href="dnssec-modes.html#dnssec-direct-database">8.4. Rules for filling out fields in database backends</a></span></dt></dl></div><p>
+    PowerDNSSEC can operate in several modes. In the simplest situation, there is a single "SQL" database
+    that contains, in separate tables, all domain data, keying material and other DNSSEC related settings.
+  </p><p>
+    This database is then replicated to all PowerDNS instances, which all serve identical records, keys
+    and signatures.
+  </p><p>
+    In this mode of operation, care should be taken that the database replication occurs over a secure network, 
+    or over an encrypted connection. This is because keying material, if intercepted, could be used to counterfeit
+    DNSSEC data using the original keys.
+  </p><p>
+    Such a single replicated database requires no further attention beyond monitoring already required during
+    non-DNSSEC operations.
+  </p><div class="section" title="8.1. PowerDNSSEC Pre-signed records"><div class="titlepage"><div><div><h3 class="title"><a id="dnssec-presigned"></a>8.1. PowerDNSSEC Pre-signed records</h3></div></div></div><p>
+    In this mode, PowerDNS serves zones that already contain DNSSEC records. Such zones can either be slaved from
+    a remote master, or can be signed using tools like OpenDNSSEC, ldns-signzone or dnssec-signzone.
+  </p></div><div class="section" title="8.2. PowerDNSSEC Front-signing"><div class="titlepage"><div><div><h3 class="title"><a id="dnssec-frontserver"></a>8.2. PowerDNSSEC Front-signing</h3></div></div></div><p>
+      As a special feature, PowerDNSSEC can operate as a signing server which operates as a slave
+      to an unsigned master. 
+    </p><p>
+      In this way, if keying material is available for an unsigned zone that is retrieved from a master server,
+      this keying material will be used when serving data from this zone.
+    </p><p>
+      As part of the zone retrieval, the equivalent of 'pdnssec rectify-zone' is run to make sure 
+      that all DNSSEC-related fields are set correctly.
+    </p></div><div class="section" title="8.3. PowerDNSSEC hybrid BIND-mode operation"><div class="titlepage"><div><div><h3 class="title"><a id="dnssec-bind-hybrid"></a>8.3. PowerDNSSEC hybrid BIND-mode operation</h3></div></div></div><p>
+      PowerDNS can also operate based on 'BIND'-style zone &amp; configuration files. This 'bindbackend'
+      has full knowledge of DNSSEC, but has no native way of storing keying material.
+    </p><p>
+      However, since PowerDNS supports operation with multiple simultaneous backends, this is not a problem.
+    </p><p>
+      In hybrid mode, keying material and zone records are stored in different backends. This allows for
+      'bindbackend' operation in full DNSSEC mode. 
+    </p><p>
+      To benefit from this mode, include at least one database-based backend in the 'launch' statement. The Generic SQLite backend
+      version 3 (gsqlite3) probably complements BIND mode best, since it does not require a database server process.
+    </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+      For now, it is necessary to execute a manual SQL 'insert' into the domains table of the backend hosting
+      the keying material. This is needed to generate a zone-id for the relevant domain. Sample SQL statement:
+      <span class="command"><strong>insert into domains (name, type) values ('powerdnssec.org', 'NATIVE');</strong></span>.
+    </p></td></tr></table></div></div><div class="section" title="8.4. Rules for filling out fields in database backends"><div class="titlepage"><div><div><h3 class="title"><a id="dnssec-direct-database"></a>8.4. Rules for filling out fields in database backends</h3></div></div></div><p>
+  </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>The BIND Backend automates all the steps outlined below, and does not need 'manual' help
+  </p></td></tr></table></div><p>
+    For DNSSEC, two additional fields are important: 'auth' and 'ordername'. These fields are set correctly
+    on an incoming zone transfer, and also by running 'pdnssec rectify-zone', or 'zone2sql' with the --dnssec flag.
+    </p><p>The 'auth' field should be set to '1' for 
+    data for which is itself authoritative, which includes the SOA record and its own NS records. 
+  </p><p>
+    The 'auth' field should be 0 however for NS records which are used for delegation, and also for any glue (A, AAAA) records
+    present for this purpose. Do note that the DS record for a secure delegation should be authoritative!
+  </p><p>
+    The 'ordername' field needs to be filled out depending on the NSEC/NSEC3 mode. When running in NSEC3 'Narrow' mode,
+    the ordername field is ignored and best left empty.
+  </p><p>
+    In 'NSEC' mode, it should contain the <span class="emphasis"><em>relative</em></span> part of a domain name, in reverse order, with dots replaced
+    by spaces. So 'www.uk.powerdnssec.org' in the 'powerdnssec.org' zone should have 'uk www' as its ordername.
+  </p><p>
+    In 'NSEC3' non-narrow mode, the ordername should contain a lowercase base32hex encoded representation of the salted &amp; iterated hash
+    of the full record name. <span class="command"><strong>pdnssec hash-zone-record zone record</strong></span> can be used to calculate this hash.
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="dnssec-operational-doctrine.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdnssec-auth.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="dnssec-security.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">7. Operational instructions </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 9. Security</td></tr></table></div></body></html>

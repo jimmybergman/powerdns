@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix A. Backends in detail</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="analysis.html" title="Chapter 24. Tools to analyse DNS traffic" /><link rel="next" href="mysqlbackend.html" title="2. MySQL backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix A. Backends in detail</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="analysis.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="mysqlbackend.html">Next</a></td></tr></table><hr /></div><div class="appendix" title="Appendix A. Backends in detail"><div class="titlepage"><div><div><h2 class="title"><a id="backends-detail"></a>Appendix A. Backends in detail</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="backends-detail.html#pipebackend">1. PipeBackend</a></span></dt><dd><dl><dt><span class="sect2"><a href="backends-detail.html#pipebackend-protocol">1.1. PipeBackend protocol</a></span></dt><dt><span class="sect2"><a href="backends-detail.html#id415300">1.2. Notes</a></span></dt></dl></dd><dt><span class="sect1"><a href="mysqlbackend.html">2. MySQL backend</a></span></dt><dd><dl><dt><span class="sect2"><a href="mysqlbackend.html#id415472">2.1. Configuration settings</a></span></dt><dt><span class="sect2"><a href="mysqlbackend.html#id415571">2.2. Notes</a></span></dt></dl></dd><dt><span class="sect1"><a href="randombackend.html">3. Random Backend</a></span></dt><dt><span class="sect1"><a href="pdnsbackend.html">4. MySQL PowerDNS backend</a></span></dt><dd><dl><dt><span class="sect2"><a href="pdnsbackend.html#id415958">4.1. Notes</a></span></dt></dl></dd><dt><span class="sect1"><a href="generic-mypgsql-backends.html">5. Generic MySQL and PgSQL backends</a></span></dt><dd><dl><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416088">5.1. MySQL specifics</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416185">5.2. PostgreSQL specifics</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#goracle">5.3. Oracle specifics</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416345">5.4. Basic functionality</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#master-slave-queries">5.5. Master/slave queries</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416787">5.6. Fancy records</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416883">5.7. Settings and specifying queries</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417017">5.8. Native operation</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417041">5.9. Slave operation</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417084">5.10. Superslave operation</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417108">5.11. Master operation</a></span></dt></dl></dd><dt><span class="sect1"><a href="oracle.html">6. Oracle backend</a></span></dt><dd><dl><dt><span class="sect2"><a href="oracle.html#id417357">6.1. The Database Schema</a></span></dt><dt><span class="sect2"><a href="oracle.html#id417975">6.2. The SQL Statements</a></span></dt></dl></dd><dt><span class="sect1"><a href="gsqlite.html">7. Generic SQLite backend (2 and 3)</a></span></dt><dd><dl><dt><span class="sect2"><a href="gsqlite.html#id419035">7.1. Compiling the SQLite backend</a></span></dt><dt><span class="sect2"><a href="gsqlite.html#id419074">7.2. Setting up the database</a></span></dt><dt><span class="sect2"><a href="gsqlite.html#id419150">7.3. Using the SQLite backend</a></span></dt></dl></dd><dt><span class="sect1"><a href="db2.html">8. DB2 backend</a></span></dt><dt><span class="sect1"><a href="bindbackend.html">9. Bind zone file backend</a></span></dt><dd><dl><dt><span class="sect2"><a href="bindbackend.html#id419542">9.1. Operation</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#bind-control-commands">9.2. Pdns_control commands</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#id419658">9.3. Performance</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#id419681">9.4. Master/slave configuration</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#id419718">9.5. Commands</a></span></dt></dl></dd><dt><span class="sect1"><a href="odbc.html">10. ODBC backend</a></span></dt><dt><span class="sect1"><a href="xdbbackend.html">11. XDB Backend</a></span></dt><dt><span class="sect1"><a href="ldap.html">12. LDAP backend</a></span></dt><dt><span class="sect1"><a href="opendbx.html">13. OpenDBX backend</a></span></dt><dt><span class="sect1"><a href="geo.html">14. Geo backend</a></span></dt><dt><span class="sect1"><a href="mongo.html">15. MongoDB Backend</a></span></dt><dt><span class="sect1"><a href="luabackend.html">16. Lua Backend</a></span></dt></dl></div><p>
+      This appendix lists several of the available backends in more detail
+    </p><div class="sect1" title="1. PipeBackend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="pipebackend"></a>1. PipeBackend</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="backends-detail.html#pipebackend-protocol">1.1. PipeBackend protocol</a></span></dt><dt><span class="sect2"><a href="backends-detail.html#id415300">1.2. Notes</a></span></dt></dl></div><p>
+	</p><div class="table"><a id="id414845"></a><p class="title"><b>Table A.1. PipeBackend capabilities</b></p><div class="table-contents"><table summary="PipeBackend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>No</td></tr><tr><td>Slave</td><td>No</td></tr><tr><td>Superslave</td><td>No</td></tr><tr><td>Autoserial</td><td>No</td></tr><tr><td>Case</td><td>Depends</td></tr><tr><td>DNSSEC</td><td>Partial, no delegation, no key storage</td></tr><tr><td>Module name</td><td>pipe</td></tr><tr><td>Launch name</td><td>pipe</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	The PipeBackend allows for easy dynamic resolution based on a 'Coprocess' which can be written in any
+	programming language that can read a question on standard input and answer on standard output. 
+      </p><p>
+	To configure, the following settings are available:
+	</p><div class="variablelist"><dl><dt><span class="term">pipe-command</span></dt><dd><p>
+		Command to launch as backend. Mandatory.
+	      </p></dd><dt><span class="term">pipe-timeout</span></dt><dd><p>
+		Number of milliseconds to wait for an answer from the backend. If this time is ever exceeded, the backend
+		is declared dead and a new process is spawned. Available since 2.7.
+	      </p></dd><dt><span class="term">pipe-regex</span></dt><dd><p>
+		If set, only questions matching this regular expression are even sent to the backend. This makes sure that
+		most of PowerDNS does not slow down if you you reploy a slow backend. A query for the A record of 'www.powerdns.com'
+		would be presented to the regex as 'www.powerdns.com;A'. A matching regex would be '^www.powerdns.com;.*$'.
+	      </p><p>
+		To match only ANY and A queries for www.powerdns.com, use '^www.powerdns.com;(A|ANY)$'. Please be aware that the
+		single quotes used in this document should not be present in the configuration file, and only on the command line. 
+		In the configuration file, the previous example would be stored as: pipe-regex=^www.powerdns.com;(A|ANY)$
+	      </p><p>
+		Available since 2.8.
+	      </p></dd><dt><span class="term">pipebackend-abi-version</span></dt><dd><p>
+		This is the version of the question format that is sent to the co-process (pipe-command) for the pipe backend.
+	      </p><p>
+		If not set the default pipebackend-abi-version is 1. When set to 2, the local-ip-address field is added
+		after the remote-ip-address. (the local-ip-address refers to the IP address the question was received on). When
+		set to 3, the real remote IP/subnet is added based on edns-subnet support (this also requires enabling 'edns-subnet-processing').
+	      </p></dd></dl></div><p>
+      </p><div class="sect2" title="1.1. PipeBackend protocol"><div class="titlepage"><div><div><h3 class="title"><a id="pipebackend-protocol"></a>1.1. PipeBackend protocol</h3></div></div></div><p>
+	  Questions come in over a file descriptor, by default standard input. Answers
+	  are sent out over another file descriptor, standard output by default. Questions
+	  and answers are terminated by single newline ('\n') characters.
+	</p><div class="sect3" title="Handshake"><div class="titlepage"><div><div><h4 class="title"><a id="id415023"></a>Handshake</h4></div></div></div><p>
+        PowerDNS sends out 'HELO\t1', indicating that it wants to speak the
+        protocol as defined in this document, version 1. For abi-version 2 or 3, PowerDNS
+        sends 'HELO\t2' or 'HELO\t3'.
+        
+        A PowerDNS CoProcess must then send out a banner, prefixed by 'OK\t', 
+        indicating it launched successfully. If it does not support the indicated
+        version, it should respond with FAIL, but not exit. Suggested behaviour is
+        to try and read a further line, and wait to be terminated.
+      </p></div><div class="sect3" title="Questions"><div class="titlepage"><div><div><h4 class="title"><a id="id415037"></a>Questions</h4></div></div></div><p>
+        Questions come in three forms and are prefixed by a tag indicating the type:
+	</p><div class="variablelist"><dl><dt><span class="term">Q</span></dt><dd><p>
+                Regular queries
+	      </p></dd><dt><span class="term">AXFR</span></dt><dd><p>
+                List requests, which mean that an entire zone should be listed
+	      </p></dd><dt><span class="term">PING</span></dt><dd><p>
+                Check if the coprocess is functioning
+	      </p></dd></dl></div><p>
+       </p><p>
+The question format, for type Q questions:
+</p><p>
+pipebackend-abi-version = 1 [default]
+</p><pre class="screen">
+Q	qname		qclass	qtype	id	remote-ip-address
+</pre><p>
+</p><p>
+pipebackend-abi-version = 2
+</p><pre class="screen">
+Q	qname		qclass	qtype	id	remote-ip-address	local-ip-address
+</pre><p>
+</p><p>
+pipebackend-abi-version = 3
+</p><pre class="screen">
+Q	qname		qclass	qtype	id	remote-ip-address	local-ip-address	edns-subnet-address
+</pre><p>
+</p><p>
+Fields are tab separated, and terminated with a single \n. The remote-ip-address is the IP address
+of the nameserver asking the question; the local-ip-address is the IP address on which the question
+was received.
+</p><p>
+Type is the tag above, qname is the domain the question is about. qclass is
+always 'IN' currently, denoting an INternet question. qtype is the kind of
+information desired, the record type, like A, CNAME or AAAA. id can be
+specified to help your backend find an answer if the id is already known
+from an earlier query. You can ignore it unless you want to support AXFR.
+</p><p>
+remote-ip-address is the ip-address of the nameserver asking the question.
+local-ip-address is the ip-address that was queried locally. edns-subnet-address
+is the actual client subnet as provided via edns-subnet support. Note that for the SOA
+query that precedes an AXFR, edns-subnet is always set to 0.0.0.0/0.
+</p><p>
+AXFR-queries look like this:
+</p><pre class="screen">
+AXFR	id
+</pre><p>
+The id is gathered from the answer to a SOA query.
+
+</p></div><div class="sect3" title="Answers"><div class="titlepage"><div><div><h4 class="title"><a id="id415151"></a>Answers</h4></div></div></div><p>
+
+        Each answer starts with a tag, possibly followed by a TAB and more data.
+	</p><div class="variablelist"><dl><dt><span class="term">DATA</span></dt><dd><p>
+                Indicating a successful line of DATA.
+	      </p></dd><dt><span class="term">END</span></dt><dd><p>
+                Indicating the end of an answer - no further data.
+	      </p></dd><dt><span class="term">FAIL</span></dt><dd><p>
+                Indicating a lookup failure. Also serves as 'END'. No further data.
+	      </p></dd><dt><span class="term">LOG</span></dt><dd><p>
+                For specifying things that should be logged. Can only be sent after
+                a query and before an END line. After the tab, the message to be
+                logged.
+                
+	      </p></dd></dl></div><p>
+
+
+        So, letting it be known that there is no data consists of sending 'END'
+        without anything else.
+
+
+The answer format (for abi-version 1 and 2):
+</p><pre class="screen">
+DATA	qname		qclass	qtype	ttl	id	content	
+</pre><p>
+
+'content' is as specified in <a class="xref" href="types.html" title="Chapter 21. Supported record types and their storage">Chapter 21, <i>Supported record types and their storage</i></a>. For MX and SRV, content consists of the priority, followed by a tab, followed by the actual content.
+</p><p>
+A sample dialogue may look like this (note that in reality,
+almost all queries will actually be for the ANY qtype):
+</p><pre class="screen">
+Q	www.ds9a.nl	IN	CNAME	-1	213.244.168.210
+DATA	www.ds9a.nl	IN	CNAME	3600	1 ws1.ds9a.nl
+END
+Q	ws1.ds9a.nl	IN	CNAME	-1	213.244.168.210
+END
+Q	wd1.ds9a.nl	IN	A	-1	213.244.168.210
+DATA	ws1.ds9a.nl	IN	A	3600	1	1.2.3.4
+DATA	ws1.ds9a.nl	IN	A	3600	1	1.2.3.5
+DATA	ws1.ds9a.nl	IN	A	3600	1	1.2.3.6
+END
+</pre><p>
+
+This would correspond to a remote webserver 213.244.168.210 wanting to
+resolve the IP address of www.ds9a.nl, and PowerDNS traversing the CNAMEs to
+find the IP addresses of ws1.ds9a.nl
+
+Another dialogue might be:
+</p><pre class="screen">
+Q	ds9a.nl		IN	SOA	-1	213.244.168.210
+DATA	ds9a.nl		IN	SOA	86400	1 ahu.ds9a.nl ...
+END
+AXFR	1
+DATA	ds9a.nl		IN	SOA	86400	1 ahu.ds9a.nl ...
+DATA	ds9a.nl		IN	NS	86400	1 ns1.ds9a.nl
+DATA	ds9a.nl		IN	NS	86400	1 ns2.ds9a.nl
+DATA	ns1.ds9a.nl	IN	A	86400	1 213.244.168.210
+DATA	ns2.ds9a.nl	IN	A	86400	1 63.123.33.135
+.
+.
+END
+</pre><p>
+
+This is a typical zone transfer.
+	  </p><p>
+	For abi-version 3, DATA-responses get two extra fields:
+</p><pre class="screen">
+DATA	scopebits	auth	qname		qclass	qtype	ttl	id	content	
+</pre><p>
+
+scopebits indicates how many bits from the subnet provided in the question
+(originally from edns-subnet) were used in determining this answer. This can
+aid caching (although PowerDNS does not currently use this value). The auth
+field indicates whether this response is authoritative; this is for DNSSEC.
+</p></div><div class="sect3" title="Sample perl backend"><div class="titlepage"><div><div><h4 class="title"><a id="id415269"></a>Sample perl backend</h4></div></div></div><p>
+	</p><pre class="screen">
+#!/usr/bin/perl -w
+# sample PowerDNS Coprocess backend
+#
+
+use strict;
+
+
+$|=1;					# no buffering
+
+my $line=&lt;&gt;;
+chomp($line);
+
+unless($line eq "HELO\t1") {
+	print "FAIL\n";
+	print STDERR "Recevied '$line'\n";
+	&lt;&gt;;
+	exit;
+}
+print "OK	Sample backend firing up\n";	# print our banner
+
+while(&lt;&gt;)
+{
+	print STDERR "$$ Received: $_";
+	chomp();
+	my @arr=split(/\t/);
+	if(@arr&lt;6) {
+		print "LOG	PowerDNS sent unparseable line\n";
+		print "FAIL\n";
+		next;
+	}
+
+	my ($type,$qname,$qclass,$qtype,$id,$ip)=split(/\t/);
+
+	if(($qtype eq "A" || $qtype eq "ANY") &amp;&amp; $qname eq "webserver.example.com") {
+		print STDERR "$$ Sent A records\n";
+		print "DATA	$qname	$qclass	A	3600	-1	1.2.3.4\n";
+		print "DATA	$qname	$qclass	A	3600	-1	1.2.3.5\n";
+		print "DATA	$qname	$qclass	A	3600	-1	1.2.3.6\n";
+	}
+	elsif(($qtype eq "CNAME" || $qtype eq "ANY") &amp;&amp; $qname eq "www.example.com") {
+		print STDERR "$$ Sent CNAME records\n";
+		print "DATA	$qname	$qclass	CNAME	3600	-1	webserver.example.com\n";
+	}
+	elsif($qtype eq "MBOXFW") {
+		print STDERR "$$ Sent MBOXFW records\n";
+		print "DATA	$qname	$qclass	MBOXFW	3600	-1	powerdns\@example.com\n";
+	}
+
+
+	print STDERR "$$ End of data\n";
+	print "END\n";
+}
+	  </pre><p>
+	</p></div></div><div class="sect2" title="1.2. Notes"><div class="titlepage"><div><div><h3 class="title"><a id="id415300"></a>1.2. Notes</h3></div></div></div><p>
+	  Besides regular query types, the DNS also knows the 'ANY' query type. When a server receives 
+	  a question for this ANY type, it should reply with all record types available.
+	</p><p>
+	  Backends should therefore implement being able to answer 'ANY' queries in this way, and supply all
+	  record types they have when they receive such an 'ANY' query. This is reflected in the sample script above, 
+	  which for every qtype answers if the type matches, or if the query is for 'ANY'.
+	</p><p>
+	  However, since backends need to implement the ANY query anyhow, PowerDNS makes use of this. Since almost all
+	  DNS queries internally need to be translated first into a CNAME query and then into the actual query, possibly 
+	  followed by a SOA or NS query (this is how DNS works internally), it makes sense for PowerDNS to speed this up,
+	  and just ask the ANY query of a backend.
+	</p><p>
+	  When it has done so, it gets the data about SOA, CNAME and NS records in one go. This speeds things up tremendously.
+	</p><p>
+	  The upshot of the above is that for any backend, including the PIPE backend, implementing the ANY query is NOT optional.
+	  And in fact, a backend may see almost exclusively ANY queries. This is not a bug.
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="analysis.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="mysqlbackend.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 24. Tools to analyse DNS traffic </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. MySQL backend</td></tr></table></div></body></html>

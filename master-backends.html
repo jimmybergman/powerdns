@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>5. Read/write master-capable backends</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backend-writers-guide.html" title="Appendix C. Backend writers' guide" /><link rel="prev" href="rw-backends.html" title="4. Read/write slave-capable backends" /><link rel="next" href="compiling-powerdns.html" title="Appendix D. Compiling PowerDNS" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">5. Read/write master-capable backends</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="rw-backends.html">Prev</a> </td><th width="60%" align="center">Appendix C. Backend writers' guide</th><td width="20%" align="right"> <a accesskey="n" href="compiling-powerdns.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="5. Read/write master-capable backends"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="master-backends"></a>5. Read/write master-capable backends</h2></div></div></div><p>
+        In order to be a useful master for a domain, notifies must be sent out whenever a domain is changed. Periodically, PDNS
+        queries backends for domains that may have changed, and sends out notifications for slave nameservers.
+      </p><p>
+        In order to do so, PDNS calls the <code class="function">getUpdatedMasters()</code> method. Like the <code class="function">getUnfreshSlaveInfos()</code>
+        function mentioned above, this should add changed domain names to the vector passed.
+      </p><p>
+	The following excerpt from the DNSBackend shows the relevant functions:
+      </p><p>
+	</p><pre class="programlisting">
+	  class DNSBackend {
+	  public:
+           /* ... */
+	   virtual void getUpdatedMasters(vector&lt;DomainInfo&gt;* domains);
+	   virtual void setNotifed(int id, u_int32_t serial);
+           /* ... */
+	 }
+	</pre><p>
+      </p><p>
+	These functions all have a default implementation that returns false - which explains that these methods can be omitted in simple backends. 
+
+	Furthermore, unlike with simple backends, a slave capable backend must make sure that the 'DNSBackend *db' field of the SOAData record is filled 
+	out correctly - it is used to determine which backend will house this zone. 
+
+	</p><div class="variablelist"><dl><dt><span class="term">void getUpdatedMasters(vector&lt;DomainInfo&gt;* domains)</span></dt><dd><p>
+		When called, the backend should examine its list of master domains and add any changed ones to the DomainInfo vector
+	      </p></dd><dt><span class="term">bool setNotified(int domain_id, u_int32_t serial)</span></dt><dd><p>
+                Indicate that notifications have been queued for this domain and that it need not be considered 'updated' anymore
+	      </p></dd></dl></div><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="rw-backends.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backend-writers-guide.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="compiling-powerdns.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">4. Read/write slave-capable backends </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Appendix D. Compiling PowerDNS</td></tr></table></div></body></html>

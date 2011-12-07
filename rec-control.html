@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Controlling and querying the recursor</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="built-in-recursor.html" title="Chapter 16. PowerDNS Recursor: a high performance resolving nameserver" /><link rel="prev" href="recursor-command-line.html" title="2. pdns_recursor command line" /><link rel="next" href="recursor-performance.html" title="4. PowerDNS Recursor performance" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Controlling and querying the recursor</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="recursor-command-line.html">Prev</a> </td><th width="60%" align="center">Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</th><td width="20%" align="right"> <a accesskey="n" href="recursor-performance.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Controlling and querying the recursor"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="rec-control"></a>3. Controlling and querying the recursor</h2></div></div></div><p>
+	To control and query the PowerDNS recursor, the tool <code class="filename">rec_control</code> is provided. This program
+	talks to the recursor over the 'controlsocket', often stored in <code class="filename">/var/run</code>.
+      </p><p>
+	As a sample command, try:
+	</p><pre class="screen">
+	  # rec_control ping
+	  pong
+	</pre><p>
+      </p><p>
+	When not running as root, <span class="command"><strong>--socket-dir=/tmp</strong></span> might be appropriate.
+      </p><p>
+	  All rec_control commands are documented below:
+	  </p><div class="variablelist"><dl><dt><span class="term">dump-cache filename</span></dt><dd><p>
+		  Dumps the entire cache to the filename mentioned. This file should not exist already, PowerDNS
+		  will refuse to overwrite it. While dumping, the recursor will not answer questions.
+		</p></dd><dt><span class="term">get statistic</span></dt><dd><p>
+		  Retrieve a statistic. For items that can be queried, see below.
+		</p></dd><dt><span class="term">get-all</span></dt><dd><p>
+		  Retrieve all statistics in one go. Available since 3.2.
+		</p></dd><dt><span class="term">get-parameter parameter1 parameter2 ..</span></dt><dd><p>
+		  Retrieve a configuration parameter. All parameters from the configuration and command line can be queried. Available since 3.2.
+		</p></dd><dt><span class="term">ping</span></dt><dd><p>
+		  Check if server is alive.
+		</p></dd><dt><span class="term">quit</span></dt><dd><p>
+		  Request shutdown of the recursor.
+		</p></dd><dt><span class="term">reload-zones</span></dt><dd><p>
+		Reload data about all authoritative and forward zones. The configuration file is also scanned 
+		to see if the <span class="command"><strong>auth-domain</strong></span>, <span class="command"><strong>forward-domain</strong></span> and <span class="command"><strong>export-etc-hosts</strong></span>
+		statements have changed, and if so, these changes are incorporated.
+		</p></dd><dt><span class="term">top-remotes</span></dt><dd><p>
+		  Shows the top-20 most active remote hosts. Statistics are over the last 'remotes-ringbuffer-entries' queries, which
+		  defaults to 0.
+		</p></dd><dt><span class="term">wipe-cache domain0. [domain1. domain2.]</span></dt><dd><p>
+		  Wipe entries from the cache. This is useful if, for example, an important server has a new IP address, but the TTL has not
+		  yet expired. Multiple domain names can be passed. For versions before 3.1, you must terminate a domain with a .! So to wipe powerdns.org,
+		  issue 'rec_control wipe-cache powerdns.org.'. For later versions, the dot is optional. 
+		</p><p>
+		  Note that deletion is exact, wiping 'com.' will leave 'www.powerdns.com.' untouched!
+		</p><p>
+		  </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+		      As of 3.1.7, this command also wipes the negative query cache for the specified domain.
+		    </p></td></tr></table></div><p>
+		  </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+		    Don't just wipe 'www.somedomain.com', its NS records or CNAME target may still be undesired, so wipe 'somedomain.com' as well.
+		    </p></td></tr></table></div><p>
+		</p></dd></dl></div><p>
+	</p><p>
+	  The command 'get' can query a large number of statistics, which are detailed in <a class="xref" href="recursor-stats.html" title="6. Statistics">Section 6, “Statistics”</a>.
+
+	</p><p>
+	  More details on what 'throttled' queries and the like are can be found below in <a class="xref" href="recursor-details.html" title="5. Details">Section 5, “Details”</a>.
+	</p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="recursor-command-line.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="built-in-recursor.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="recursor-performance.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. pdns_recursor command line </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 4. PowerDNS Recursor performance</td></tr></table></div></body></html>

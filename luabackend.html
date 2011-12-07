@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>16. Lua Backend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="mongo.html" title="15. MongoDB Backend" /><link rel="next" href="pdns-internals.html" title="Appendix B. PDNS internals" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">16. Lua Backend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="mongo.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="pdns-internals.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="16. Lua Backend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="luabackend"></a>16. Lua Backend</h2></div></div></div><p>
+	</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	    This section is a subset of the full documentation which can be found in <code class="filename">modules/luabackend/README</code> of
+	    the PowerDNS distribution.
+	  </p></td></tr></table></div><p>
+      </p><p>
+	The main author for this module is fredrik danerklint.
+      </p><p>
+	</p><div class="table"><a id="id420432"></a><p class="title"><b>Table A.15. Lua backend capabilities</b></p><div class="table-contents"><table summary="Lua backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>Yes</td></tr><tr><td>Slave</td><td>No</td></tr><tr><td>Superslave</td><td>No</td></tr><tr><td>Autoserial</td><td>No</td></tr><tr><td>DNSSEC</td><td>Yes</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>The Lua Backend is available since PowerDNS Authoritative Server 3.0. In 3.0, this backend is marked as
+      Experimental!</p></td></tr></table></div><p>
+      </p><p>
+	The MongoDB backend is a full service that can allows a Lua script to provide answers to DNS queries.
+	</p><p>
+	More details can be found <a class="ulink" href="http://wiki.powerdns.com/cgi-bin/trac.fcgi/browser/trunk/pdns/modules/luabackend/README" target="_top">here</a>, or in
+	<code class="filename">modules/luabackend/README</code>, part of the PowerDNS Authoritative Server distribution.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="mongo.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="pdns-internals.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">15. MongoDB Backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Appendix B. PDNS internals</td></tr></table></div></body></html>

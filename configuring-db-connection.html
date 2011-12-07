@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 4. Basic setup: configuring database connectivity</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="running-on-windows.html" title="2. Running PDNS on Microsoft Windows" /><link rel="next" href="pipebackend-dynamic-resolution.html" title="Chapter 5. Dynamic resolution using the PipeBackend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 4. Basic setup: configuring database connectivity</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="running-on-windows.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="pipebackend-dynamic-resolution.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 4. Basic setup: configuring database connectivity"><div class="titlepage"><div><div><h2 class="title"><a id="configuring-db-connection"></a>Chapter 4. Basic setup: configuring database connectivity</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="configuring-db-connection.html#configuring-mysql">1. Example: configuring MySQL</a></span></dt><dd><dl><dt><span class="sect2"><a href="configuring-db-connection.html#id405120">1.1. Common problems</a></span></dt></dl></dd></dl></div><p>
+      This chapter shows you how to configure the Generic MySQL backend, which we like a lot. But feel free to use any of the myriad
+      other backends.
+      This backend is called 'gmysql', and needs to be configured
+      in <code class="filename">pdns.conf</code>. Add the following lines, adjusted for your local setup:
+      
+      </p><pre class="screen">
+	launch=gmysql
+	gmysql-host=127.0.0.1
+	gmysql-user=root
+	gmysql-dbname=pdnstest
+      </pre><p>
+      
+      Remove any earlier <span class="command"><strong>launch</strong></span> statements. Also remove the <span class="command"><strong>bind-example-zones</strong></span>
+      statement as the <span class="command"><strong>bind</strong></span> module is no longer launched.
+    </p><p>
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	  Make sure that you can actually resolve the hostname of your database without accessing the database! It is advised to supply
+	  an IP address here to prevent chicken/egg problems!
+	</p></td></tr></table></div><p>
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	  Be very very sure that you configure the *g*mysql backend and not the mysql backend. See
+	  <a class="xref" href="generic-mypgsql-backends.html" title="5. Generic MySQL and PgSQL backends">Section 5, “Generic MySQL and PgSQL backends”</a>. If you use the 'mysql' backend things will only appear to work.
+	</p></td></tr></table></div><p>
+    </p><p>
+      Now start PDNS using the monitor command:
+      </p><pre class="screen">
+	# /etc/init.d/pdns monitor
+	(...)
+	15:31:30 About to create 3 backend threads
+	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdnstest'
+	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdnstest'
+	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdnstest'
+      </pre><p>
+      
+      This is as to be expected - we did not yet add anything to MySQL for PDNS to read from. At this point you may also see
+      other errors which indicate that PDNS either could not find your MySQL server or was unable to connect to it. Fix these 
+      before proceeding.
+    </p><p>
+      General MySQL knowledge is assumed in this chapter, please do not interpret these commands as DBA advice!
+    </p><div class="sect1" title="1. Example: configuring MySQL"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="configuring-mysql"></a>1. Example: configuring MySQL</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="configuring-db-connection.html#id405120">1.1. Common problems</a></span></dt></dl></div><p>
+	Connect to MySQL as a user with sufficient privileges and issue the following commands:
+	</p><pre class="screen">
+create table domains (
+ id		 INT auto_increment,
+ name		 VARCHAR(255) NOT NULL,
+ master		 VARCHAR(128) DEFAULT NULL,
+ last_check	 INT DEFAULT NULL,
+ type		 VARCHAR(6) NOT NULL,
+ notified_serial INT DEFAULT NULL, 
+ account         VARCHAR(40) DEFAULT NULL,
+ primary key (id)
+) Engine=InnoDB;
+
+CREATE UNIQUE INDEX name_index ON domains(name);
+
+CREATE TABLE records (
+  id              INT auto_increment,
+  domain_id       INT DEFAULT NULL,
+  name            VARCHAR(255) DEFAULT NULL,
+  type            VARCHAR(10) DEFAULT NULL,
+  content         VARCHAR(4096) DEFAULT NULL,
+  ttl             INT DEFAULT NULL,
+  prio            INT DEFAULT NULL,
+  change_date     INT DEFAULT NULL,
+  primary key(id)
+) Engine=InnoDB;
+
+CREATE INDEX rec_name_index ON records(name);
+CREATE INDEX nametype_index ON records(name,type);
+CREATE INDEX domain_id ON records(domain_id);
+
+create table supermasters (
+  ip VARCHAR(25) NOT NULL, 
+  nameserver VARCHAR(255) NOT NULL, 
+  account VARCHAR(40) DEFAULT NULL
+) Engine=InnoDB;
+
+GRANT SELECT ON supermasters TO pdns;
+GRANT ALL ON domains TO pdns;
+GRANT ALL ON records TO pdns;
+	</pre><p>
+	
+	Now we have a database and an empty table. PDNS should now be able to launch in monitor mode and display no errors:
+
+	</p><pre class="screen">
+	  # /etc/init.d/pdns monitor
+	  (...)
+	  15:31:30 PowerDNS 1.99.0 (Mar 12 2002, 15:00:28) starting up
+	  15:31:30 About to create 3 backend threads
+	  15:39:55 [gMySQLbackend] MySQL connection succeeded
+	  15:39:55 [gMySQLbackend] MySQL connection succeeded
+	  15:39:55 [gMySQLbackend] MySQL connection succeeded
+	</pre><p>
+	
+	A sample query sent to the database should now return quickly without data:
+	</p><pre class="screen">
+	  $ host www.test.com 127.0.0.1
+	  www.test.com A record currently not present at localhost
+	</pre><p>
+
+	And indeed, the control console now shows:
+	</p><pre class="screen">
+	  Mar 12 15:41:12 We're not authoritative for 'www.test.com', sending unauth normal response
+	</pre><p>
+
+	Now we need to add some records to our database:
+	</p><pre class="screen">
+	  # mysql pdnstest
+	  mysql&gt; INSERT INTO domains (name, type) values ('test.com', 'NATIVE');
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio) 
+	  VALUES (1,'test.com','localhost ahu@ds9a.nl 1','SOA',86400,NULL);
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio)
+	  VALUES (1,'test.com','dns-us1.powerdns.net','NS',86400,NULL);
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio)
+	  VALUES (1,'test.com','dns-eu1.powerdns.net','NS',86400,NULL);
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio)
+	  VALUES (1,'www.test.com','199.198.197.196','A',120,NULL);
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio)
+	  VALUES (1,'mail.test.com','195.194.193.192','A',120,NULL);
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio)
+	  VALUES (1,'localhost.test.com','127.0.0.1','A',120,NULL);
+	  INSERT INTO records (domain_id, name, content, type,ttl,prio)
+	  VALUES (1,'test.com','mail.test.com','MX',120,25);
+	</pre><p>
+	</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>Host names and the MNAME of a SOA records are NEVER terminated with a '.' in PowerDNS storage! If a trailing '.' is present
+    it will inevitably cause problems, problems that may be hard to debug.</p></td></tr></table></div><p>
+	If we now requery our database, <span class="command"><strong>www.test.com</strong></span> should be present:
+	</p><pre class="screen">
+	  $ host www.test.com 127.0.0.1
+	  www.test.com        	A	199.198.197.196
+	  
+	  $ host -v -t mx test.com 127.0.0.1
+	  Address: 127.0.0.1
+	  Aliases: localhost
+
+	  Query about test.com for record types MX
+	  Trying test.com ...
+	  Query done, 1 answer, authoritative status: no error
+	  test.com            	120	IN	MX	25 mail.test.com
+	  Additional information:
+	  mail.test.com       	120	IN	A	195.194.193.192
+	</pre><p>
+	
+	To confirm what happened, issue the command <span class="command"><strong>SHOW *</strong></span> to the control console:
+	</p><pre class="screen">
+	  % show *
+	  corrupt-packets=0,latency=0,packetcache-hit=2,packetcache-miss=5,packetcache-size=0,
+	  qsize-a=0,qsize-q=0,servfail-packets=0,tcp-answers=0,tcp-queries=0,
+	  timedout-packets=0,udp-answers=7,udp-queries=7,
+	  % 
+	</pre><p>
+	The actual numbers will vary somewhat. Now enter <span class="command"><strong>QUIT</strong></span> and start PDNS as a regular daemon, and check launch status:
+
+	</p><pre class="screen">
+	  # /etc/init.d/pdns start 
+	  pdns: started
+	  # /etc/init.d/pdns status
+	  pdns: 8239: Child running
+	  # /etc/init.d/pdns dump  
+	  pdns: corrupt-packets=0,latency=0,packetcache-hit=0,packetcache-miss=0,
+	  packetcache-size=0,qsize-a=0,qsize-q=0,servfail-packets=0,tcp-answers=0,
+	  tcp-queries=0,timedout-packets=0,udp-answers=0,udp-queries=0,
+	</pre><p>
+	
+	You now have a working database driven nameserver! To convert other zones already present, use the <span class="command"><strong>zone2sql</strong></span> 
+        described in Appendix A.
+      </p><div class="sect2" title="1.1. Common problems"><div class="titlepage"><div><div><h3 class="title"><a id="id405120"></a>1.1. Common problems</h3></div></div></div><p>
+	  Most problems involve PDNS not being able to connect to the database. 
+	</p><div class="variablelist"><dl><dt><span class="term"><span class="errortype"> Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)</span></span></dt><dd><p>
+		  Your MySQL installation is probably defaulting to another location for its socket. Can be resolved
+		  by figuring out this location (often <code class="filename">/var/run/mysqld.sock</code>), and specifying it 
+		  in the configuration file with the <span class="command"><strong>gmysql-socket</strong></span> parameter.
+		</p><p>
+		  Another solution is to not connect to the socket, but to 127.0.0.1, which can be achieved by specifying
+		  <span class="command"><strong>gmysql-host=127.0.0.1</strong></span>.
+		</p></dd><dt><span class="term"><span class="errortype">Host 'x.y.z.w' is not allowed to connect to this MySQL server</span></span></dt><dd><p>
+		  These errors are generic MySQL errors. Solve them by trying to connect to your MySQL database with the MySQL 
+		  console utility <span class="command"><strong>mysql</strong></span> with the parameters specified to PDNS. Consult the MySQL documentation.
+		</p></dd></dl></div><p>
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="running-on-windows.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="pipebackend-dynamic-resolution.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Running PDNS on Microsoft Windows </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 5. Dynamic resolution using the PipeBackend</td></tr></table></div></body></html>

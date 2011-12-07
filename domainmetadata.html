@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 14. Per zone settings aka Domain Metadata</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="tsig-outbound-notify-axfr.html" title="2. Provisioning signed notification and AXFR requests" /><link rel="next" href="recursion.html" title="Chapter 15. Recursion" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 14. Per zone settings aka Domain Metadata</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="tsig-outbound-notify-axfr.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="recursion.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 14. Per zone settings aka Domain Metadata"><div class="titlepage"><div><div><h2 class="title"><a id="domainmetadata"></a>Chapter 14. Per zone settings aka Domain Metadata</h2></div></div></div><p>
+    Starting with the PowerDNS Authoritative Server, each served zone can have "metadata". Such metadata determines
+    how this zone behaves in certain circumstances.
+  </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>Domain metadata is only available for DNSSEC capable backends! Make sure to enable the proper '-dnssec' setting to benefit, and
+  to have performed the DNSSEC schema update.</p></td></tr></table></div><p>
+    Each metadata item is described elsewhere in the documentation, and the following settings are available:
+    </p><div class="variablelist"><dl><dt><span class="term">AXFR-MASTER-TSIG</span></dt><dd><p>
+	    Use this named TSIG key to retrieve this zone from its master.
+	  </p></dd><dt><span class="term">LUA-AXFR-SCRIPT</span></dt><dd><p>
+	    Script to be used to edit incoming AXFRs.
+	  </p></dd><dt><span class="term">NSEC3NARROW</span></dt><dd><p>
+	    Determines if this zone operates in NSEC3 'narrow' mode.
+	  </p></dd><dt><span class="term">NSEC3PARAM</span></dt><dd><p>
+	    NSEC3 parameters of a DNSSEC zone. Will be used to synthesize the NSEC3PARAM record. If present, NSEC3 is used, if not
+	    present, zones default to NSEC.
+	  </p></dd><dt><span class="term">PRESIGNED</span></dt><dd><p>
+	    This zone carries DNSSEC RRSIGs (signatures), and is presigned. 
+	  </p></dd><dt><span class="term">SOA-EDIT</span></dt><dd><p>
+	    When serving this zone, modify the SOA serial number in one of several ways. Mostly useful to get slaves
+	    to re-transfer a zone regularly to get fresh RRSIGs.
+	  </p></dd><dt><span class="term">TSIG-ALLOW-AXFR</span></dt><dd><p>
+	    Allow these named TSIG keys to AXFR this zone.
+	  </p></dd></dl></div><p>
+  </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="tsig-outbound-notify-axfr.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="recursion.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Provisioning signed notification and AXFR requests </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 15. Recursion</td></tr></table></div></body></html>

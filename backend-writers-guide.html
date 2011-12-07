@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix C. Backend writers' guide</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="dns-to-query.html" title="4. How PDNS translates DNS queries into backend queries" /><link rel="next" href="backend-error-reporting.html" title="2. Reporting errors" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix C. Backend writers' guide</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="dns-to-query.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="backend-error-reporting.html">Next</a></td></tr></table><hr /></div><div class="appendix" title="Appendix C. Backend writers' guide"><div class="titlepage"><div><div><h2 class="title"><a id="backend-writers-guide"></a>Appendix C. Backend writers' guide</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="backend-writers-guide.html#simple-backends">1. Simple read-only native backends</a></span></dt><dd><dl><dt><span class="sect2"><a href="backend-writers-guide.html#id421327">1.1. A sample minimal backend</a></span></dt><dt><span class="sect2"><a href="backend-writers-guide.html#id421403">1.2. Interface definition</a></span></dt></dl></dd><dt><span class="sect1"><a href="backend-error-reporting.html">2. Reporting errors</a></span></dt><dt><span class="sect1"><a href="backend-configuration-details.html">3. Declaring and reading configuration details</a></span></dt><dt><span class="sect1"><a href="rw-backends.html">4. Read/write slave-capable backends</a></span></dt><dd><dl><dt><span class="sect2"><a href="rw-backends.html#id422497">4.1. Supermaster/Superslave capability</a></span></dt></dl></dd><dt><span class="sect1"><a href="master-backends.html">5. Read/write master-capable backends</a></span></dt></dl></div><p>
+      PDNS backends are implemented via a simple yet powerful C++ interface. If your needs are not met by the PipeBackend, you 
+      may want to write your own. Before doing any PowerDNS development, please visit <a class="ulink" href="http://wiki.powerdns.com" target="_top">the wiki</a>.
+    </p><p>
+      A backend contains zero DNS logic. It need not look for CNAMES, it need not return NS records unless explicitly asked for, etcetera.
+      All DNS logic is contained within PDNS itself - backends should simply return records matching the description asked for. 
+    </p><p> 
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+      However, please note that your backend can get queries in aNy CAsE! If your database is case sensitive, like most are (with the notable
+      exception of MySQL), you must make sure that you do find answers which differ only in case.
+	</p></td></tr></table></div><p>
+    </p><p> 
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	  PowerDNS may instantiate multiple instances of your backend, or destroy existing copies and instantiate new ones. Backend code
+	  should therefore be thread-safe with respect to its static data. Additionally, it is wise if instantiation is a fast operation, 
+	  with the possible exception of the first construction.
+	</p></td></tr></table></div><p>
+    </p><div class="sect1" title="1. Simple read-only native backends"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="simple-backends"></a>1. Simple read-only native backends</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="backend-writers-guide.html#id421327">1.1. A sample minimal backend</a></span></dt><dt><span class="sect2"><a href="backend-writers-guide.html#id421403">1.2. Interface definition</a></span></dt></dl></div><p>
+	Implementing a backend consists of inheriting from the DNSBackend class. For read-only backends, which do not support slave operation,
+	only the following methods are relevant:
+	
+	</p><pre class="programlisting">
+	class DNSBackend
+	{
+	public:
+
+	virtual bool lookup(const QType &amp;qtype, const string &amp;qdomain, DNSPacket *pkt_p=0, int zoneId=-1)=0; 
+	virtual bool list(int domain_id)=0; 
+	virtual bool get(DNSResourceRecord &amp;r)=0;
+	virtual bool getSOA(const string &amp;name, SOAData &amp;soadata);
+	};
+	</pre><p>
+      
+	Note that the first three methods must be implemented. <code class="function">getSOA()</code> has a useful default implementation.
+      </p><p>
+	The semantics are simple. Each instance of your class only handles one (1) query at a time. There is no need for locking as PDNS guarantees
+	that your backend will never be called reentrantly. 
+      </p><p>
+	Some examples, a more formal specification is down below. A normal lookup starts like this:
+	
+	</p><pre class="programlisting">
+        YourBackend yb;
+	yb.lookup(QType::CNAME,"www.powerdns.com");
+	</pre><p>
+      
+	Your class should now do everything to start this query. Perform as much preparation as possible - handling errors at this stage is better for PDNS 
+	than doing so later on. A real error should be reported by throwing an exception. 
+      </p><p>
+	PDNS will then call the <code class="function">get()</code> method to get <span class="command"><strong>DNSResourceRecord</strong></span>s back. The following code illustrates
+	a typical query:
+	
+      </p><pre class="programlisting">
+	yb.lookup(QType::CNAME,"www.powerdns.com");
+
+	DNSResourceRecord rr;
+	while(yb.get(rr))
+   	  cout&lt;&lt;"Found cname pointing to '"+rr.content+"'"&lt;&lt;endl;
+	}
+	</pre><p>
+      </p><p>
+	Each zone starts with a Start of Authority (SOA) record. This record is special so many backends will choose to implement it
+	specially. The default <code class="function">getSOA()</code> method performs a regular lookup on your backend to figure out the SOA, 
+	so if you have no special treatment for SOA records, where is no need to implement your own <code class="function">getSOA()</code>.
+      </p><p>
+	Besides direct queries, PDNS also needs to be able to list a zone, to do zone transfers for example. Each zone has an id which should be
+	unique within the backend. To list all records belonging to a zone id, the <code class="function">list()</code> method is used. Conveniently,
+	the domain_id is also available in the <span class="command"><strong>SOAData</strong></span> structure.
+      </p><p>
+	The following lists the contents of a zone called "powerdns.com".
+      
+	</p><pre class="programlisting">
+	SOAData sd;
+	if(!yb.getSOA("powerdns.com",sd))  // are we authoritative over powerdns.com?
+	  return RCode::NotAuth;           // no
+
+	yb.list(sd.domain_id); 
+	while(yb.get(rr))
+   	  cout&lt;&lt;rr.qname&lt;&lt;"\t IN "&lt;&lt;rr.qtype.getName()&lt;&lt;"\t"&lt;&lt;rr.content&lt;&lt;endl;
+	</pre><p>
+      </p><p>
+	Please note that when so called 'fancy records' (see <a class="xref" href="fancy-records.html" title="Chapter 18. Fancy records for seamless email and URL integration">Chapter 18, <i>Fancy records for seamless email and URL integration</i></a>) are enabled, a backend can receive
+	wildcard lookups. These have a % as the first character of the qdomain in lookup. 
+      </p><div class="sect2" title="1.1. A sample minimal backend"><div class="titlepage"><div><div><h3 class="title"><a id="id421327"></a>1.1. A sample minimal backend</h3></div></div></div><p>
+	  This backend only knows about the host "random.powerdns.com", and furthermore, only about its A record:
+	  
+	  </p><pre class="programlisting">
+/* FIRST PART */
+class RandomBackend : public DNSBackend
+{
+public:
+  bool list(int id) {
+    return false; // we don't support AXFR
+  }
+    
+  void lookup(const QType &amp;type, const string &amp;qdomain, DNSPacket *p, int zoneId)
+  {
+    if(type.getCode()!=QType::A || qdomain!="random.powerdns.com")  // we only know about random.powerdns.com A
+      d_answer="";                                                  // no answer
+    else {
+      ostringstream os;
+      os&lt;&lt;random()%256&lt;&lt;"."&lt;&lt;random()%256&lt;&lt;"."&lt;&lt;random()%256&lt;&lt;"."&lt;&lt;random()%256;
+      d_answer=os.str();                                           // our random ip address
+    }
+  }
+
+  bool get(DNSResourceRecord &amp;rr)
+  {
+    if(!d_answer.empty()) {
+      rr.qname="random.powerdns.com";                               // fill in details
+      rr.qtype=QType::A;                                            // A record
+      rr.ttl=86400;                                                 // 1 day
+      rr.content=d_answer;
+
+      d_answer="";                                                  // this was the last answer
+      
+      return true;
+    }
+    return false;                                                   // no more data
+  }
+  
+private:
+  string d_answer;
+};
+
+/* SECOND PART */
+
+class RandomFactory : public BackendFactory
+{
+public:
+  RandomFactory() : BackendFactory("random") {}
+
+  DNSBackend *make(const string &amp;suffix)
+  {
+    return new RandomBackend();
+  }
+};
+
+/* THIRD PART */
+
+class RandomLoader
+{
+public:
+  RandomLoader()
+  {
+    BackendMakers().report(new RandomFactory);
+    
+    L&lt;&lt;Logger::Info&lt;&lt;" [RandomBackend] This is the randombackend ("__DATE__", "__TIME__") reporting"&lt;&lt;endl;
+  }  
+};
+
+static RandomLoader randomloader;
+	</pre><p>	  
+        This simple backend can be used as an 'overlay'. In other words, it only knows about a single record, another loaded backend would have
+        to know about the SOA and NS records and such. But nothing prevents us from loading it without another backend.
+      </p><p>
+        The first part of the code contains the actual logic and should be pretty straightforward. The second part is a boilerplate
+        'factory' class which PDNS calls to create randombackend instances. Note that a 'suffix' parameter is passed. Real life backends
+        also declare parameters for the configuration file; these get the 'suffix' appended to them. Note that the "random" in the 
+        constructor denotes the name by which the backend will be known.
+      </p><p>
+        The third part registers the RandomFactory with PDNS. This is a simple C++ trick which makes sure that this function
+        is called on execution of the binary or when loading the dynamic module.
+      </p><p>
+	  Please note that a RandomBackend is actually in most PDNS releases. By default it lives on random.example.com, but you can change
+	  that by setting <span class="command"><strong>random-hostname</strong></span>.
+	</p><p>
+	  NOTE: this simple backend neglects to handle case properly!
+	</p></div><div class="sect2" title="1.2. Interface definition"><div class="titlepage"><div><div><h3 class="title"><a id="id421403"></a>1.2. Interface definition</h3></div></div></div><p>
+	Classes:
+	</p><div class="table"><a id="id421410"></a><p class="title"><b>Table C.1. DNSResourceRecord class</b></p><div class="table-contents"><table summary="DNSResourceRecord class" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>QType qtype</td><td>QType of this record</td></tr><tr><td>string qname</td><td>name of this record</td></tr><tr><td>string content</td><td>ASCII representation of right hand side</td></tr><tr><td>u_int16_t priority</td><td>priority of an MX record.</td></tr><tr><td>u_int32_t ttl</td><td>Time To Live of this record</td></tr><tr><td>int domain_id</td><td>ID of the domain this record belongs to</td></tr><tr><td>time_t last_modified</td><td>If unzero, last time_t this record was changed</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	</p><div class="table"><a id="id421493"></a><p class="title"><b>Table C.2. SOAData struct</b></p><div class="table-contents"><table summary="SOAData struct" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>string nameserver</td><td>Name of the master nameserver of this zone</td></tr><tr><td>string hostmaster</td><td>Hostmaster of this domain. May contain an @</td></tr><tr><td>u_int32_t serial</td><td>Serial number of this zone</td></tr><tr><td>u_int32_t refresh</td><td>How often this zone should be refreshed</td></tr><tr><td>u_int32_t retry</td><td>How often a failed zone pull should be retried.</td></tr><tr><td>u_int32_t expire</td><td>If zone pulls failed for this long, retire records</td></tr><tr><td>u_int32_t default_ttl</td><td>Difficult</td></tr><tr><td>int domain_id</td><td>The ID of the domain within this backend. Must be filled!</td></tr><tr><td>DNSBackend *db</td><td>Pointer to the backend that feels authoritative for a domain and can act as a slave</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	Methods:
+	</p><div class="variablelist"><dl><dt><span class="term">void lookup(const QType &amp;qtype, const string &amp;qdomain, DNSPacket *pkt=0, int zoneId=-1)</span></dt><dd><p>
+		This function is used to initiate a straight lookup for a record of name 'qdomain' and type 'qtype'.
+		A QType can be converted into an integer by invoking its <code class="function">getCode()</code> method and into
+		a string with the <code class="function">getCode()</code>.
+	      </p><p>
+		  The original question may or may not be passed in the pointer p. If it is, you can retrieve (from 1.99.11 onwards) 
+		  information about who asked the question with the <code class="function">getRemote(DNSPacket *)</code> method. Alternatively, 
+		  <code class="function">bool getRemote(struct sockaddr *sa, socklen_t *len)</code> is available.
+		</p><p>
+		  Note that <span class="command"><strong>qdomain</strong></span> can be of any case and that your backend should make sure it is in effect case 
+		  insensitive. Furthermore, the case of the original question should be retained in answers returned by <code class="function">get()</code>!
+		</p><p>
+		Finally, the domain_id might also be passed indicating that only answers from the indicated zone need apply. This
+		can both be used as a restriction or as a possible speedup, hinting your backend where the answer might be found.
+	      </p><p>
+		If initiated succesfully, as indicated by returning <span class="command"><strong>true</strong></span>, answers should be made available over the
+		<code class="function">get()</code> method.
+		</p><p>
+		  Should throw an AhuException if an error occured accessing the database. Returning otherwise indicates that the query 
+		  was started succesfully. If it is known that no data is available, no exception should be thrown! An exception indicates
+		  that the backend considers itself broken - not that no answers are available for a question.
+		</p><p>
+		  It is legal to return here, and have the first call to <code class="function">get()</code> return false. This is interpreted as 'no data'
+		</p></dd><dt><span class="term">bool list(int domain_id)</span></dt><dd><p>
+		Initiates a list of the indicated domain. Records should then be made available via the <code class="function">get()</code> method. 
+		Need not include the SOA record. If it is, PDNS will not get confused.
+	      </p><p>
+		Should return false if the backend does not consider itself authoritative for this zone.
+		Should throw an AhuException if an error occured accessing the database. Returning true indicates that data is or should be available.
+	      </p></dd><dt><span class="term">bool get(DNSResourceRecord &amp;rr)</span></dt><dd><p>
+		Request a DNSResourceRecord from a query started by <code class="function">get()</code> of <code class="function">list()</code>. If this functions returns 
+		<span class="command"><strong>true</strong></span>, <span class="command"><strong>rr</strong></span> has been filled with data. When it returns false, no more data is available, 
+		and <span class="command"><strong>rr</strong></span> does not contain new data. A backend should make sure that it either fills out all fields of the 
+		DNSResourceRecord or resets them to their default values.
+	      </p><p>
+		  The qname field of the DNSResourceRecord should be filled out with the exact <code class="function">qdomain</code> passed to lookup, preserving
+		  its case. So if a query for 'CaSe.yourdomain.com' comes in and your database contains dat afor 'case.yourdomain.com', the qname field of rr
+		  should contin 'CaSe.yourdomain.com'!
+		</p><p>
+		Should throw an AhuException in case a database error occurred.
+	      </p></dd><dt><span class="term">bool getSOA(const string &amp;name, SOAData &amp;soadata)</span></dt><dd><p>
+		If the backend considers itself authoritative over domain <code class="function">name</code>, this method should fill out
+		the passed <span class="command"><strong>SOAData</strong></span> structure and return a positive number. If the backend is functioning correctly, but
+		does not consider itself authoritative, it should return 0. In case of errors, an AhuException should be thrown.
+	      </p></dd></dl></div><p>
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="dns-to-query.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="backend-error-reporting.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">4. How PDNS translates DNS queries into backend queries </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Reporting errors</td></tr></table></div></body></html>

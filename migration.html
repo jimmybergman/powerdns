@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 10. Migrating to PowerDNS</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="performance-settings.html" title="3. Performance related settings" /><link rel="next" href="upgrades.html" title="Chapter 11. Notes on upgrading" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 10. Migrating to PowerDNS</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="performance-settings.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="upgrades.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 10. Migrating to PowerDNS"><div class="titlepage"><div><div><h2 class="title"><a id="migration"></a>Chapter 10. Migrating to PowerDNS</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="migration.html#zone2sql">1. Zone2sql</a></span></dt></dl></div><p>
+      Before migrating to PowerDNS a few things should be considered. 
+      </p><div class="variablelist"><dl><dt><span class="term">PowerDNS does not operate as a 'slave' or 'master' server with all backends</span></dt><dd><p>
+	      Only the Generic SQL, OpenDBX and BIND backends have the ability to act as master or slave.
+	    </p></dd></dl></div><p>
+      To migrate, the <span class="command"><strong>zone2sql</strong></span> tool is provided. 
+      </p><p>
+      Additionally, the PowerDNS source comes with a number of diagnostic tools, which can be helpful in verifying proper 
+      PowerDNS operation, versus incumbent nameservers. See <a class="xref" href="analysis.html" title="Chapter 24. Tools to analyse DNS traffic">Chapter 24, <i>Tools to analyse DNS traffic</i></a> for more details.
+    </p><div class="sect1" title="1. Zone2sql"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="zone2sql"></a>1. Zone2sql</h2></div></div></div><p>
+	Zone2sql parses Bind named.conf files and zonefiles and outputs SQL 
+	on standard out, which can then be fed to your database.
+      </p><p>
+	Zone2sql understands the Bind master file extension '$GENERATE' and will also honour '$ORIGIN' and '$TTL'.
+      </p><p>
+	For backends supporting slave operation (currently only the Generic PostgreSQL, Generic MySQL and BIND backend), there is also an option to 
+	keep slave zones as slaves, and not convert them to native operation. 
+      </p><p>
+	By default, zone2sql outputs code suitable for the mysqlbackend, but it can also generate SQL for the Generic PostgreSQL, Generic MySQL and 
+	Oracle backends. 
+	The following commands are available:
+      </p><p>
+	</p><div class="variablelist"><dl><dt><span class="term">--bare</span></dt><dd><p>
+	      Output in a bare format, suitable for further parsing. The output is formatted as follows:
+		</p><pre class="screen">
+		  domain_id&lt;TAB&gt;'qname'&lt;TAB&gt;'qtype'&lt;TAB&gt;'content'&lt;TAB&gt;prio&lt;TAB&gt;ttl
+		</pre><p>
+	      </p></dd><dt><span class="term">--gmysql</span></dt><dd><p>
+		Output in format suitable for the default configuration of the Generic MySQL backend.
+	      </p></dd><dt><span class="term">--gpgsql</span></dt><dd><p>
+		Output in format suitable for the default configuration of the Generic PostgreSQL backend.
+	      </p></dd><dt><span class="term">--help</span></dt><dd><p>
+		List options.
+	      </p></dd><dt><span class="term">--mysql</span></dt><dd><p>
+		Output in format suitable for the default configuration of the MySQL backend. Default.
+	      </p></dd><dt><span class="term">--named-conf=...</span></dt><dd><p>
+		Parse this named.conf to find locations of zones. 
+	      </p></dd><dt><span class="term">--on-error-resume-next</span></dt><dd><p>
+		Ignore missing files during parsing. Dangerous.
+	      </p></dd><dt><span class="term">--oracle</span></dt><dd><p>
+		Output in format suitable for the default configuration of the Generic Oracle backend.
+	      </p></dd><dt><span class="term">--slave</span></dt><dd><p>
+		Maintain slave status of zones listed in named.conf as being slaves. The default behaviour is to convert all zones
+		to native operation.
+	      </p></dd><dt><span class="term">--startid</span></dt><dd><p>
+		Supply a value for the first domain_id generated. Defaults at 0.
+	      </p></dd><dt><span class="term">--transactions</span></dt><dd><p>
+		For Oracle and PostgreSQL output, wrap each domain in a transaction for higher speed and integrity.
+	      </p></dd><dt><span class="term">--verbose</span></dt><dd><p>
+		Be verbose during conversion.
+	      </p></dd><dt><span class="term">--zone=...</span></dt><dd><p>
+		Parse only this zone file. Conflicts with <span class="command"><strong>--named-conf</strong></span> parameter. 
+	      </p></dd><dt><span class="term">--zone-name=...</span></dt><dd><p>
+		When parsing a single zone without $ORIGIN statement, set this as the zone name.
+	      </p></dd></dl></div><p>
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="performance-settings.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="upgrades.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Performance related settings </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 11. Notes on upgrading</td></tr></table></div></body></html>

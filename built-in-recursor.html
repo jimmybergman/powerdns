@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="recursion.html" title="Chapter 15. Recursion" /><link rel="next" href="recursor-command-line.html" title="2. pdns_recursor command line" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="recursion.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="recursor-command-line.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 16. PowerDNS Recursor: a high performance resolving nameserver"><div class="titlepage"><div><div><h2 class="title"><a id="built-in-recursor"></a>Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="built-in-recursor.html#recursor-settings">1. pdns_recursor settings</a></span></dt><dt><span class="sect1"><a href="recursor-command-line.html">2. pdns_recursor command line</a></span></dt><dt><span class="sect1"><a href="rec-control.html">3. Controlling and querying the recursor</a></span></dt><dt><span class="sect1"><a href="recursor-performance.html">4. PowerDNS Recursor performance</a></span></dt><dd><dl><dt><span class="sect2"><a href="recursor-performance.html#recursor-caches">4.1. Recursor Caches</a></span></dt></dl></dd><dt><span class="sect1"><a href="recursor-details.html">5. Details</a></span></dt><dd><dl><dt><span class="sect2"><a href="recursor-details.html#anti-spoofing">5.1. Anti-spoofing</a></span></dt><dt><span class="sect2"><a href="recursor-details.html#id409893">5.2. Throttling</a></span></dt></dl></dd><dt><span class="sect1"><a href="recursor-stats.html">6. Statistics</a></span></dt><dt><span class="sect1"><a href="recursor-scripting.html">7. Scripting</a></span></dt><dd><dl><dt><span class="sect2"><a href="recursor-scripting.html#id410073">7.1. Configuring Lua scripts</a></span></dt><dt><span class="sect2"><a href="recursor-scripting.html#id410146">7.2. Writing Lua PowerDNS Recursor scripts</a></span></dt></dl></dd><dt><span class="sect1"><a href="recursor-design-and-engineering.html">8. Design and Engineering of the PowerDNS Recursor</a></span></dt><dd><dl><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id410502">8.1. The PowerDNS Recursor</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id410515">8.2. Synchronous code using MTasker</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id410588">8.3. MPlexer</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id410681">8.4. MOADNSParser</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id410878">8.5. The C++ Standard Library / Boost</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id410920">8.6. Actual DNS Algorithm</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id411069">8.7. The non-cached case</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id411340">8.8. Some of the things we glossed over</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id411394">8.9. The Recursor Cache</a></span></dt><dt><span class="sect2"><a href="recursor-design-and-engineering.html#id411488">8.10. Some small things</a></span></dt></dl></dd></dl></div><p>
+      The PowerDNS recursor is part of the source tarball of the main PowerDNS distribution, but it is released separately. Starting from
+      the version 3.0 pre-releases, there are zero known bugs or issues with the recursor. It is known to power the resolving needs of over 100 million
+      internet connections.
+    </p><p>
+      The documentation below is only for the 3.0 series, users of older versions are urged to upgrade!
+    </p><p>
+      Notable features:
+      </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	    Uses MTasker (<a class="ulink" href="http://ds9a.nl/mtasker" target="_top">homepage</a>)
+	  </p></li><li class="listitem"><p>
+	    Can handle thousands of concurrent questions. A quad Xeon 3GHz has been measured functioning very well at 40000 real life replayed
+	    packets per second, with 40% cpu idle. More testing equipment is needed to max out the recursor.
+	  </p></li><li class="listitem"><p>
+	    Powered by a highly modern DNS packet parser that should be resistant against many forms of buffer overflows.
+	  </p></li><li class="listitem"><p>
+	    Best spoofing protection that we know about, involving both source port randomisation and spoofing detection.
+	  </p></li><li class="listitem"><p>
+	    Uses 'connected' UDP sockets which allow the recursor to react quickly to unreachable hosts or hosts for which 
+	    the server is running, but the nameserver is down. This makes the recursor faster to respond in case of misconfigured domains,
+	    which are sadly very frequent.
+	  </p></li><li class="listitem"><p>
+	    Special support for FreeBSD, Linux and Solaris stateful multiplexing (kqueue, epoll, completion ports, /dev/poll).
+	  </p></li><li class="listitem"><p>
+	    Very fast, and contains innovative query-throttling code to save time talking to obsolete or broken nameservers.
+	  </p></li><li class="listitem"><p>
+	    Code is written linearly, sequentially, which means that there are no problems with 'query restart' or anything.
+	  </p></li><li class="listitem"><p>
+	    Relies heavily on Standard C++ Library infrastructure, which makes for little code (406 core lines).
+	  </p></li><li class="listitem"><p>
+	    Is very verbose in showing how recursion actually works, when enabled to do so with --verbose.
+	  </p></li><li class="listitem"><p>
+	    The algorithm is simple and quite nifty.
+	  </p></li></ul></div><p>
+    </p><p>
+      The PowerDNS recursor is controlled and queried using the <code class="filename">rec_control</code> tool. 
+    </p><div class="sect1" title="1. pdns_recursor settings"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="recursor-settings"></a>1. pdns_recursor settings</h2></div></div></div><p>
+	At startup, the recursing nameserver reads the file <code class="filename">recursor.conf</code> from the configuration directory,
+	often <code class="filename">/etc/powerdns</code> or <code class="filename">/usr/local/etc</code>. Each setting below can appear on the command line,
+	prefixed by '--', or in the configuration file. The command line overrides the configuration file.
+      </p><p>
+	A switch can be set to on simply by passing it, like '--daemon', and turned off explicitly by '--daemon=off' or '--daemon=no'.
+      </p><p>
+	The following settings can be configured:
+	</p><div class="variablelist"><dl><dt><span class="term">aaaa-additional-processing</span></dt><dd><p>
+		If turned on, the recursor will attempt to add AAAA IPv6 records to questions for MX records and NS records.
+		Can be quite slow as absence of these records in earlier answers does not guarantee their non-existance. Can double
+		the amount of queries needed. Off by default.
+	      </p></dd><dt><span class="term">allow-from</span></dt><dd><p>
+		Comma separated netmasks (both IPv4 and IPv6) that are allowed to use the server. The default allows access only from RFC 1918 
+		private IP addresses, like 10.0.0.0/8. Due to the agressive nature of the internet these days, it is highly recommended
+		to not open up the recursor for the entire internet. Questions from IP addresses not listed here are ignored and do 
+		not get an answer.
+	      </p></dd><dt><span class="term">allow-from-file</span></dt><dd><p>
+		Like <span class="command"><strong>allow-from</strong></span>, except reading from file. Overrides the 'allow-from' setting. 
+		To use this feature, supply one netmask per line, with optional comments preceeded by a #.
+		Available since 3.1.5.
+	      </p></dd><dt><span class="term">auth-can-lower-ttl</span></dt><dd><p>
+		Authoritative zones can transmit a TTL value that is lower than that specified in the parent zone. This is called a
+		'delegation inconsistency'. To follow RFC 2181 paragraphs 5.2 and 5.4 to the letter, enable this feature. 
+		This will mean a slight deterioration of performance, and it will not solve any problems, but does make
+		the recursor more standards compliant. Not recommended unless you have to tick an 'RFC 2181 compliant' box. Off by default.
+	      </p></dd><dt><span class="term">auth-zones</span></dt><dd><p>
+		Comma separated list of 'zonename=filename' pairs. Zones read from these files are served authoritatively. Example:
+		<span class="command"><strong>auth-zones= ds9a.nl=/var/zones/ds9a.nl, powerdns.com=/var/zones/powerdns.com</strong></span>. Available since 3.1.
+	      </p></dd><dt><span class="term">chroot</span></dt><dd><p>
+		If set, chroot to this directory for more security. See <a class="xref" href="security.html" title="Chapter 7. Security settings &amp; considerations">Chapter 7, <i>Security settings &amp; considerations</i></a>.
+	      </p><p>
+		Make sure that <code class="filename">/dev/log</code> is available from within the chroot. Logging will silently fail
+		over time otherwise (on logrotate).
+	      </p></dd><dt><span class="term">client-tcp-timeout</span></dt><dd><p>
+	      Time to wait for data from TCP clients. Defaults to 2 seconds. 
+	      </p></dd><dt><span class="term">config-dir</span></dt><dd><p>
+		Directory where the configuration file can be found.
+	      </p></dd><dt><span class="term">daemon</span></dt><dd><p>
+		Operate in the background, which is the default.
+	      </p></dd><dt><span class="term">delegation-only</span></dt><dd><p>
+		A Verisign special.
+	      </p></dd><dt><span class="term">disable-packetcache</span></dt><dd><p>
+		Turn off the packet cache. Useful when running with Lua scripts that can not be cached. Available since 3.2.
+	      </p></dd><dt><span class="term">dont-query</span></dt><dd><p>
+		The DNS is a public database, but sometimes contains delegations to private IP addresses, like for example 127.0.0.1. This can have odd effects, 
+		depending on your network, and may even be a security risk. Therefore, since version 3.1.5, the PowerDNS recursor by default does not query
+		private space IP addresses. This setting can be used to expand or reduce the limitations.
+	      </p></dd><dt><span class="term">entropy-source</span></dt><dd><p>
+		From version 3.1.5 onwards, PowerDNS can read entropy from a (hardware) source. This is used for generating random numbers
+		which are very hard to predict. Generally on UNIX platforms, this source will be 
+		<code class="filename">/dev/urandom</code>, which will always supply random numbers, even if entropy is lacking. 
+		Change to <code class="filename">/dev/random</code> if PowerDNS should block waiting for enough entropy to arrive.
+	      </p></dd><dt><span class="term">export-etc-hosts</span></dt><dd><p>
+		If set, this flag will export the host names and IP addresses mentioned in <code class="filename">/etc/hosts</code>. Available since 3.1.
+	      </p></dd><dt><span class="term">fork</span></dt><dd><p>
+		If running on an SMP system with enough memory, this feature forks PowerDNS so it benefits from two processors. Experimental. Renames
+		controlsockets, so care is needed to connect to the right one using <span class="command"><strong>rec_control</strong></span>, using <span class="command"><strong>--socket-pid</strong></span>.
+		Available in versions of the Recursor before 3.2, replaced by the 'threads' setting.
+	      </p></dd><dt><span class="term">forward-zones</span></dt><dd><p>
+		Comma separated list of 'zonename=IP' pairs. Queries for zones listed here will be forwarded to the IP address listed.
+		<span class="command"><strong>forward-zones= ds9a.nl=213.244.168.210, powerdns.com=127.0.0.1</strong></span>. Available since 3.1.
+	      </p><p>
+		Since version 3.1.5, multiple IP addresses can be specified. Additionally, port numbers other than 53 can be configured.
+		Sample syntax: <span class="command"><strong>forward-zones=ds9a.nl=213.244.168.210:5300;127.0.0.1, powerdns.com=127.0.0.1;9.8.7.6:530</strong></span>,
+		or on the command line: <span class="command"><strong>--forward-zones="ds9a.nl=213.244.168.210:5300;127.0.0.1, powerdns.com=127.0.0.1;9.8.7.6:530"</strong></span>,
+	      </p><p>
+		Forwarded queries have the 'recursion desired' bit set to 0, meaning that this setting is intended to forward queries to authoritative servers.
+	      </p></dd><dt><span class="term">forward-zones-file</span></dt><dd><p>
+		Same as <span class="command"><strong>forward-zones</strong></span>, parsed from a file. Only 1 zone is allowed per line, specified as follows:
+		<span class="command"><strong>ds9a.nl=213.244.168.210, 1.2.3.4:5300</strong></span>. No comments are allowed. Available since 3.1.5. 
+	      </p><p>
+		Since 3.2, zones prefixed with a '+' are forwarded with the recursion-desired bit set to one, for which see 'forward-zones-recurse'. Default behaviour without '+'
+		is as with 'forward-zones'.
+	      </p></dd><dt><span class="term">forward-zones-recurse</span></dt><dd><p>
+		Like regular 'forward-zones' (see above), but forwarded queries have the 'recursion desired' bit set to 1, meaning that this setting is intended to forward queries 
+		to authoritative servers or to resolving servers. Available since 3.2.
+	      </p></dd><dt><span class="term">hint-file</span></dt><dd><p>
+		If set, the root-hints are read from this file. If unset, default root hints are used. Available since 2.9.19.
+	      </p></dd><dt><span class="term">local-address</span></dt><dd><p>
+		Local IPv4 or IPv6 addresses to bind to, comma separated. Defaults to only loopback. Addresses can also contain port numbers,
+		for IPv4 specify like this: <span class="command"><strong>1.2.3.4:5300</strong></span>, for IPv6: <span class="command"><strong>[::1]:5300</strong></span>. Port specifications are available since
+		3.1.2.
+	      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>When binding to wildcard addresses, UNIX semantics mean that answers may not be sent
+	 	from the address a query was received on. It is highly recommended to bind to explicit addresses.</p></td></tr></table></div></dd><dt><span class="term">local-port</span></dt><dd><p>
+		Local port (singular) to bind to. Defaults to 53.
+	      </p></dd><dt><span class="term">log-common-errors</span></dt><dd><p>
+		Some DNS errors occur rather frequently and are no cause for alarm. Logging these is on by default.
+	      </p></dd><dt><span class="term">logging-facility</span></dt><dd><p>
+		If set to a digit, logging is performed under this LOCAL facility. See <a class="xref" href="syslog.html" title="3. Operational logging using syslog">Section 3, “Operational logging using syslog”</a>. Available from 3.1.3 and onwards. Do not pass names like 'local0'!
+	      </p></dd><dt><span class="term">max-cache-entries</span></dt><dd><p>
+		Maximum number of DNS cache entries. 1 million per thread will generally suffice for most installations.
+	      </p></dd><dt><span class="term">max-packetcache-entries</span></dt><dd><p>
+		Maximum number of Packet Cache entries. 1 million per thread will generally suffice for most installations. Available since 3.2. 
+	      </p></dd><dt><span class="term">max-cache-ttl</span></dt><dd><p>
+		Maximum number of seconds to cache an item in the DNS cache, no matter what the original TTL specified. Available since 3.2.
+	      </p></dd><dt><span class="term">max-negative-ttl</span></dt><dd><p>
+		A query for which there is authoritatively no answer is cached to quickly deny a record's existence later on, without
+		putting a heavy load on the remote server. In practice, caches can become saturated with hundreds of thousands of hosts
+		which are tried only once. This setting, which defaults to 3600 seconds, puts a maximum on the amount of time negative
+		entries are cached.
+	      </p></dd><dt><span class="term">max-tcp-clients</span></dt><dd><p>
+	      Maximum number of simultaneous incoming TCP connections allowed. Defaults to 128. Available since 2.9.18. 
+	      </p></dd><dt><span class="term">max-tcp-per-client</span></dt><dd><p>
+	      Maximum number of simultaneous incoming TCP connections allowed per client (remote IP address). Defaults to 0, which means unlimited.
+	      </p></dd><dt><span class="term">network-timeout</span></dt><dd><p>
+		Number of milliseconds to wait for a remote authoritative server to respond. Defaults to 1500 msec, available since 3.2.
+	      </p></dd><dt><span class="term">packetcache-ttl</span></dt><dd><p>
+		Maximum number of seconds to cache an item in the packet cache, no matter what the original TTL specified. Available since 3.2.
+	      </p></dd><dt><span class="term">packetcache-servfail-ttl</span></dt><dd><p>
+		Maximum number of seconds to cache a 'server failure' answer in the packet cache. Available since 3.2.
+	      </p></dd><dt><span class="term">query-local-address</span></dt><dd><p>
+		Send out local queries from this address, or addresses. Since 3.2, by adding multiple addresses, increased spoofing resilience is achieved. Addresses can be separated by a comma.
+	      </p></dd><dt><span class="term">query-local-address6</span></dt><dd><p>
+		Send out local IPv6 queries from this address or addresses Disabled by default, which also disables
+		outgoing IPv6 support. Since version 3.2, multiple addresses can be specified, separated by a comma.
+	      </p></dd><dt><span class="term">quiet</span></dt><dd><p>
+		Don't log queries. On by default.
+	      </p></dd><dt><span class="term">remotes-ringbuffer-entries</span></dt><dd><p>
+		Number of entries in the remotes ringbuffer, which keeps statistics on who is querying your server. Can be read out using
+		<span class="command"><strong>rec_control top-remotes</strong></span>. Defaults to 0.
+	      </p></dd><dt><span class="term">serve-rfc<span class="emphasis"><em>1918</em></span></span></dt><dd><p>
+		On by default, this makes the server authoritatively aware of: <code class="filename">10.in-addr.arpa</code>, 
+		<code class="filename">168.192.in-addr.arpa</code>, <code class="filename">16-31.172.in-addr.arpa</code>, which saves
+		load on the AS112 servers. Individual parts of these zones can still be loaded or forwarded.
+	      </p></dd><dt><span class="term">server-id</span></dt><dd><p>
+		The PowerDNS recursor by replies to a query for 'id.server' with its hostname, useful for in clusters. Use this setting to override
+		the answer it gives.
+	      </p></dd><dt><span class="term">setgid, </span><span class="term">setuid</span></dt><dd><p>
+		PowerDNS can change its user and group id after binding to its socket. Can be used for better security.
+	      </p></dd><dt><span class="term">socket-dir</span></dt><dd><p>
+		Where to store the control socket. This option also works with the controller, <span class="command"><strong>rec_control</strong></span>.
+	      </p></dd><dt><span class="term">socket-owner, socket-group, socket-mode</span></dt><dd><p>
+		Owner, group and mode of the controlsocket. Owner and group can be specified by name, mode is in octal.
+	      </p></dd><dt><span class="term">spoof-nearmiss-max</span></dt><dd><p>
+		If set to non-zero, PowerDNS will assume it is being spoofed after seeing this many answers with the wrong id. Defaults to 20.
+	      </p></dd><dt><span class="term">trace</span></dt><dd><p>
+		If turned on, output impressive heaps of logging. May destroy performance under load.
+	      </p></dd><dt><span class="term">version</span></dt><dd><p>
+		Print version of this binary. Useful for checking which version of the PowerDNS recursor is installed on a system. Available since 3.1.5.
+	      </p></dd><dt><span class="term">version-string</span></dt><dd><p>
+		By default, PowerDNS replies to the 'version.bind' query with its version number. Security concious users may wish to override
+		the reply PowerDNS issues.
+	      </p></dd></dl></div><p>
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="recursion.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="recursor-command-line.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 15. Recursion </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. pdns_recursor command line</td></tr></table></div></body></html>

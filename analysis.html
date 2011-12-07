@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 24. Tools to analyse DNS traffic</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="tools.html" title="Chapter 23. Other tools included with PowerDNS" /><link rel="next" href="backends-detail.html" title="Appendix A. Backends in detail" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 24. Tools to analyse DNS traffic</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="tools.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="backends-detail.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 24. Tools to analyse DNS traffic"><div class="titlepage"><div><div><h2 class="title"><a id="analysis"></a>Chapter 24. Tools to analyse DNS traffic</h2></div></div></div><p>
+      DNS is highly mission critical, it is therefore necessary to be able to study and compare DNS traffic. Since 2.9.18, PowerDNS comes
+      with three tools to aid in analysis:
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	  As of 2.9.18 these tools are somewhat rough - they have no help messages for example. They do work though.
+	</p></td></tr></table></div><p>
+      </p><div class="variablelist"><dl><dt><span class="term">dnsreplay pcapfile [ipaddress] [port number]</span></dt><dd><p>
+	      This program takes recorded questions and answers and replays them to a specified nameserver and reporting afterwards
+	      which percentage of answers matched, were worse or better.
+	    </p></dd><dt><span class="term">dnswasher pcapfile output</span></dt><dd><p>
+	      Anonymises recorded traffic, making sure it only contains DNS, and that the originating IP addresses of queries are stripped, which may
+	      allow you to send traces to our company or mailing list without violating obligations towards your customers or privacy laws.
+	    </p></dd><dt><span class="term">dnsscope pcapfile</span></dt><dd><p>
+	      Calculates statistics without replaying traffic
+	    </p></dd></dl></div><p>
+    </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="tools.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="backends-detail.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 23. Other tools included with PowerDNS </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Appendix A. Backends in detail</td></tr></table></div></body></html>

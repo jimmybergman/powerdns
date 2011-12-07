@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 18. Fancy records for seamless email and URL integration</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="master.html" title="3. Master operation" /><link rel="next" href="all-settings.html" title="Chapter 19. Index of all Authoritative Server settings" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 18. Fancy records for seamless email and URL integration</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="master.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="all-settings.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 18. Fancy records for seamless email and URL integration"><div class="titlepage"><div><div><h2 class="title"><a id="fancy-records"></a>Chapter 18. Fancy records for seamless email and URL integration</h2></div></div></div><p>
+	</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	    As of PowerDNS Authoritative Server 3.0, fancy records are no longer supported!
+	  </p></td></tr></table></div><p>
+      </p><p>
+      PDNS also supports so called 'fancy' records. A Fancy Record is actually not a DNS record, but it is translated into one. Currently,
+      two fancy records are implemented, but not very useful without additional unreleased software. For completeness, they are listed here.
+      The software will become available later on and is part of the Express and PowerMail suite of programs.
+    </p><p>
+      These records imply extra database lookups which has a performance impact. Therefore fancy records are only queried for if they are enabled
+      with the <span class="command"><strong>fancy-records</strong></span> command in <code class="filename">pdns.conf</code>. 
+    </p><p>
+      </p><div class="variablelist"><dl><dt><span class="term">MBOXFW</span></dt><dd><p>
+	      This record denotes an email forward. A typical entry looks like this:
+	      </p><pre class="screen">
+		support@yourdomain.com     MBOXFW       you@yourcompany.com
+	      </pre><p>
+	      When PDNS encounters a request for an MX record for yourdomain.com it will, if fancy records are enabled, also check for the existence
+	      of an MBOXFW record ending on '@yourdomain.com', in which case it will hand out a record containing the configured 
+	      <span class="command"><strong>smtpredirector</strong></span>. This server should then also be able to access the PDNS database to figure out where mail to 
+	      support@yourdomain.com should go to.
+	    </p></dd><dt><span class="term">URL</span></dt><dd><p>
+	      URL records work in much the same way, but for HTTP. A sample record:
+	      </p><pre class="screen">
+		yourdomain.com     URL       http://somewhere.else.com/yourdomain
+	      </pre><p>
+	      A URL record is converted into an A record containing the IP address configured with the <span class="command"><strong>urlredirector</strong></span>
+	      setting. On that IP address a webserver should live that knows how to redirect yourdomain.com to 
+	      http://somewhere.else.com/yourdomain.
+	    </p></dd></dl></div><p>
+    </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="master.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="all-settings.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Master operation </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 19. Index of all Authoritative Server settings</td></tr></table></div></body></html>

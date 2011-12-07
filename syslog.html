@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Operational logging using syslog</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="monitoring.html" title="Chapter 6. Logging &amp; Monitoring Authoritative Server performance" /><link rel="prev" href="init-d-commands.html" title="2. Via init.d commands" /><link rel="next" href="security.html" title="Chapter 7. Security settings &amp; considerations" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Operational logging using syslog</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="init-d-commands.html">Prev</a> </td><th width="60%" align="center">Chapter 6. Logging &amp; Monitoring Authoritative Server performance</th><td width="20%" align="right"> <a accesskey="n" href="security.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Operational logging using syslog"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="syslog"></a>3. Operational logging using syslog</h2></div></div></div><p>(<span class="command"><strong>logging-facility</strong></span> is available from 1.99.10 and onwards)</p><p>
+	This chapter assumes familiarity with syslog, the unix logging device. PDNS logs messages with different levels. The more urgent the 
+	message, the lower the 'priority'. By default, PDNS will only log messages with an urgency of 3 or lower, but this can be changed
+	using the <span class="command"><strong>loglevel</strong></span> setting in the configuration file. Setting it to 0 will eliminate all logging, 9 will log
+	everything.
+      </p><p>
+	By default, logging is performed under the 'DAEMON' facility which is shared with lots of other programs. If you regard nameserving
+	as important, you may want to have it under a dedicated facility so PDNS can log to its own files, and not clutter generic files.
+      </p><p>
+	For this purpose, syslog knows about 'local' facilities, numbered from LOCAL0 to LOCAL7. To move PDNS logging to LOCAL0, add 
+	<span class="command"><strong>logging-facility=0</strong></span> to your configuration.
+      </p><p>
+	Furthermore, you may want to have separate files for the differing prioties - preventing lower priority messages from obscuring 
+	important ones.
+      </p><p>
+	A sample syslog.conf might be:
+	</p><pre class="programlisting">
+local0.info                       -/var/log/pdns.info
+local0.warn                       -/var/log/pdns.warn
+local0.err                        /var/log/pdns.err
+	</pre><p>
+      </p><p>
+	Where local0.err would store the really important messages. For performance and diskspace reasons, it is advised
+	to audit your syslog.conf for statements also logging PDNS activities. Many syslog.confs have a '*.*' statement to
+	/var/log/syslog, which you may want to remove.
+      </p><p>
+	For performance reasons, be especially certain that no large amounts of synchronous logging take place. Under Linux, this 
+	is indicated by filenames not starting with a '-' - indicating a synchronous log, which hurts performance.
+      </p><p>
+	Be aware that syslog by default logs messages at the configured priority and higher! To log only info messages, use
+	<span class="command"><strong>local0.=info</strong></span>.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="init-d-commands.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="monitoring.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="security.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Via init.d commands </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 7. Security settings &amp; considerations</td></tr></table></div></body></html>

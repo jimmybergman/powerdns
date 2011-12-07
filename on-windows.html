@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. Compiling PowerDNS on Windows</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="compiling-powerdns.html" title="Appendix D. Compiling PowerDNS" /><link rel="prev" href="compiling-powerdns.html" title="Appendix D. Compiling PowerDNS" /><link rel="next" href="license.html" title="Appendix E. PowerDNS license (GNU General Public License version 2)" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. Compiling PowerDNS on Windows</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="compiling-powerdns.html">Prev</a> </td><th width="60%" align="center">Appendix D. Compiling PowerDNS</th><td width="20%" align="right"> <a accesskey="n" href="license.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. Compiling PowerDNS on Windows"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="on-windows"></a>2. Compiling PowerDNS on Windows</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="on-windows.html#id422859">2.1. Assumptions</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id422953">2.2. Prequisites</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423062">2.3. Nullsoft Installer</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423143">2.4. Setting up the build-environment</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423529">2.5. Compilation</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423645">2.6. Miscellaneous</a></span></dt></dl></div><p>
+	By Michel Stol (<code class="email">&lt;<a class="email" href="mailto:michel@powerdns.com">michel@powerdns.com</a>&gt;</code>).
+      </p><div class="sect2" title="2.1. Assumptions"><div class="titlepage"><div><div><h3 class="title"><a id="id422859"></a>2.1. Assumptions</h3></div></div></div><p>
+	  I will assume these things from you:      
+	</p><div class="variablelist"><dl><dt><span class="term">
+	      You have the PowerDNS sources.
+	    </span></dt><dd><p>
+		There's not much to compile without the source files, eh? :)
+	      </p></dd><dt><span class="term">
+	      You are using Microsoft Visual C++. If you get it to compile using a free compiler, please let us know!
+	    </span></dt><dd><p>
+		From the day that we began porting the <acronym class="acronym">UNIX</acronym> PowerDNS sources to Microsoft Windows
+		we used Microsoft Visual C++ as our development environment of choice.            
+	      </p><p>
+		We used Visual C++ 6.0 to compile all sources (both standard version and SP5). Other versions
+		(including Visual C++ .NET) are untested.
+	      </p></dd><dt><span class="term">
+	      You are using Microsoft Windows NT, 2000 or XP
+	    </span></dt><dd><p>
+		I will assume that the system where you want to compile the sources on is running
+		Microsoft Windows NT, 2000 or XP. These are the operating systems that where found
+		running PowerDNS for Windows.
+		
+	      </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+		  You probably can compile the sources on other Windows versions too, but that is currently untested.
+		</p></td></tr></table></div></dd><dt><span class="term">
+	      You are using an English Windows version.
+	    </span></dt><dd><p>
+		Troughout this document I will use the English names for menu items, names etc., so if you are
+		running a non-English Windows or <acronym class="acronym">MSVC</acronym> version you have to translate those things yourself. But 
+		I don't think that would be a big problem.
+	      </p></dd></dl></div></div><div class="sect2" title="2.2. Prequisites"><div class="titlepage"><div><div><h3 class="title"><a id="id422953"></a>2.2. Prequisites</h3></div></div></div><p>
+	  Although we tried to keep PowerDNS for Windows' dependencies down to a minimum, you will still need some
+	  programs and libraries to be able to compile the sources.
+	</p><div class="sect3" title="pthreads for Windows"><div class="titlepage"><div><div><h4 class="title"><a id="id422963"></a>pthreads for Windows</h4></div></div></div><p>
+	  The pthreads for Windows library is a Windows implementation of the <acronym class="acronym">POSIX</acronym> threads
+	  specification, which is used a lot in <acronym class="acronym">UNIX</acronym> programs.
+	</p><p>
+	  PowerDNS uses pthreads too, and to ease the porting process we decided not to reinvent the wheel,
+	  but to use pthreads for Windows instead.
+	</p><div class="sect4" title="Getting pthreads for Windows"><div class="titlepage"><div><div><h5 class="title"><a id="id422985"></a>Getting pthreads for Windows</h5></div></div></div><p>
+	    Pthreads for Windows is available from anonymous ftp at <a class="ulink" href="ftp://sources.redhat.com/pub/pthreads-win32/" target="_top">ftp://sources.redhat.com/pub/pthreads-win32/</a>.
+	    You should download the latest <code class="filename">pthreads-YYYY-MM-DD.exe</code> file.
+	  </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+	      PowerDNS for Windows was tested with the snapshot of 2002-03-02 of the library.
+	    </p></td></tr></table></div><p>
+	    For more information you can visit the pthreads for Windows homepage at <a class="ulink" href="http://sources.redhat.com/pthreads-win32/" target="_top">http://sources.redhat.com/pthreads-win32/</a>
+	  </p></div><div class="sect4" title="Installing pthreads for Windows"><div class="titlepage"><div><div><h5 class="title"><a id="id423026"></a>Installing pthreads for Windows</h5></div></div></div><p>
+	    To install the pthreads for Windows library you have to locate your <code class="filename">pthreads-YYYY-MM-DD.exe</code> 
+	    file and start it.
+	  </p><p>
+	    After starting the executable a self-extractor dialog will show up where you can specify where to extract
+	    the contents of the file. When you selected a location you can press the <span class="guibutton">Extract</span> button
+	    to extract all content to the target directory.
+	  </p><p>
+	    The library is now installed, we still have to tell Visual C++ where it's located though, more
+	    on that later.
+	  </p></div></div></div><div class="sect2" title="2.3. Nullsoft Installer"><div class="titlepage"><div><div><h3 class="title"><a id="id423062"></a>2.3. Nullsoft Installer</h3></div></div></div><p>
+	  For our installation program we used Nullsoft's Installer System (<acronym class="acronym">NSIS</acronym>). We used 
+	  <acronym class="acronym">NSIS</acronym> because it's easy to use, versatile and free (and it uses <acronym class="acronym"><span class="trademark">SuperPiMP</span>™</acronym> technology, but
+	  they refuse to tell us what it is ;)). If the name Nullsoft rings a bell, it's because they're the guys who made
+	  <a class="ulink" href="http://www.winamp.com/" target="_top">winamp</a>.
+	</p><div class="sect3" title="Getting the Nullsoft Installer"><div class="titlepage"><div><div><h4 class="title"><a id="id423093"></a>Getting the Nullsoft Installer</h4></div></div></div><p>
+	    The Nullsoft Installer can be downloaded at their website, which is
+	    located at <a class="ulink" href="http://www.nullsoft.com/free/nsis/" target="_top">http://www.nullsoft.com/free/nsis/</a>.
+	    The file that you should download is called <code class="filename">nsisXXX.exe</code> (where XXX is the latest version).
+	  </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+	      You can find the <acronym class="acronym">NSIS</acronym> documentation at that website too.
+	    </p></td></tr></table></div></div><div class="sect3" title="Installing the Nullsoft Installer"><div class="titlepage"><div><div><h4 class="title"><a id="id423127"></a> Installing the Nullsoft Installer</h4></div></div></div><p>
+	    Installing <acronym class="acronym">NSIS</acronym> is easy. All there is to it is locating the installer and execute it.
+	    Then just follow the installation steps.
+	  </p></div></div><div class="sect2" title="2.4. Setting up the build-environment"><div class="titlepage"><div><div><h3 class="title"><a id="id423143"></a>2.4. Setting up the build-environment</h3></div></div></div><p>
+	Before starting Microsoft Visual C++ and compile PowerDNS for Windows, you first
+	have to set up your build environment.
+      </p><div class="sect3" title="Make Microsoft Visual C++ recognize *.cc and *.hh (optional)"><div class="titlepage"><div><div><h4 class="title"><a id="id423153"></a>Make Microsoft Visual C++ recognize <code class="filename">*.cc</code> and <code class="filename">*.hh</code> (optional)</h4></div></div></div><p>
+          All PowerDNS source files are in the form <code class="filename">name.cc</code>, and all header files in the form
+          <code class="filename">name.hh</code>. These extensions aren't recognized by <acronym class="acronym">MSVC</acronym> by default, so
+          you might want to change that first.
+        </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+            Only perform this step if you want to be able to edit the <code class="filename">*.cc</code> 
+            and <code class="filename">*.hh</code> files in <acronym class="acronym">MSVC</acronym>.
+          </p></td></tr></table></div><div class="caution" title="Caution" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Caution"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="caution.png" /></td><th align="left">Caution</th></tr><tr><td align="left" valign="top"><p>
+            If you decide to perform this step, remember that it requires modification of the Windows registry, 
+            always make a backup before modifying!
+          </p></td></tr></table></div><p>
+          Ok, after that word of caution we can now proceed. You have to follow these steps:
+        </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+              Start the registry editor by entering <code class="filename">regedit.exe</code> in the run prompt
+              (<span class="guimenu">Start-&gt;Run...</span>).
+            </p></li><li class="listitem"><p>
+              Right click on <code class="filename">HKEY_CLASSES_ROOT</code> and select <span class="guimenu">New-&gt;Key</span>. 
+              A new key will appear, change that key to <span class="quote">“<span class="quote"><code class="filename">.cc</code></span>”</span>, then change the default
+              value to <span class="quote">“<span class="quote">cppfile</span>”</span>
+            </p><p>
+              Then perform the same step for <span class="quote">“<span class="quote"><code class="filename">.hh</code></span>”</span> (use <span class="quote">“<span class="quote">hfile</span>”</span> instead of <span class="quote">“<span class="quote">cppfile</span>”</span>).
+            </p></li><li class="listitem"><p>
+              Go to <code class="filename">HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Build System\Components\Platforms\Win32 (x86)\Tools\32-bit C/C++ Compiler for 80x86</code>. And
+              add <span class="quote">“<span class="quote">;*.cc</span>”</span> to the <code class="filename">Input_Spec</code> value (so that it becomes <span class="quote">“<span class="quote">*.c;*.cpp;*.cxx;*.cc</span>”</span>).
+            </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+                If you happen to use another platform (like alpha) to compile the sources, you have to do the step above for that platform.
+              </p></td></tr></table></div></li><li class="listitem"><p>
+              Go to <code class="filename">HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Search</code>. And
+              add <span class="quote">“<span class="quote">;*.cc;*.hh</span>”</span> to the <code class="filename">FIF_Filter</code> value (so that it becomes <span class="quote">“<span class="quote">*.c;*.cpp;*.cxx;*.tli;*.h;*.tlh;*.inl;*.rc;*.cc;*.hh</span>”</span>).
+            </p></li><li class="listitem"><p>
+              Finally change <code class="filename">HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Text Editor\Tabs/Language Settings\C/C++</code>. And
+              add <span class="quote">“<span class="quote">;cc;hh</span>”</span> to the <code class="filename">FileExtensions</code> value (so that it becomes <span class="quote">“<span class="quote">cpp;cxx;c;h;hxx;hpp;inl;tlh;tli;rc;rc2;hh;cc</span>”</span>).
+            </p></li><li class="listitem"><p>
+              Close the registry editor.
+            </p></li></ol></div><p>
+          Now should <acronym class="acronym">MSVC</acronym> properly recognize the files as being C++.
+        </p></div><div class="sect3" title="Setting Microsoft Visual C++'s directories"><div class="titlepage"><div><div><h4 class="title"><a id="id423409"></a>Setting Microsoft Visual C++'s directories</h4></div></div></div><p>
+	  <acronym class="acronym">MSVC</acronym> needs to locate some include files, libraries and executables
+	  when it has to build PowerDNS for Windows. We are now going to tell <acronym class="acronym">MSVC</acronym> where
+	  to find those.
+	</p><p>
+	  To enter the directory dialog you have to go to <span class="guimenu">Tools-&gt;Options...-&gt;Directories</span>.
+	</p><div class="sect4" title="Setting the pthreads directories"><div class="titlepage"><div><div><h5 class="title"><a id="id423437"></a>Setting the pthreads directories</h5></div></div></div><p>
+	    When you are in the directory dialog you can add the pthreads for Windows directory.
+	  </p><p>
+	    First add the include directory, to do this you have to select <span class="guilabel">Include files</span>
+	    from the <span class="guilabel">Show directories for:</span> combobox. Then press the <span class="guibutton">New</span>
+	    button and browse to the <span class="command"><strong>include</strong></span> directory of pthreads (ie. <code class="filename">C:\pthreads\include</code>).
+	  </p><p>
+	    Then switch to <span class="guilabel">Library files</span> and add the <span class="command"><strong>library</strong></span> directory
+	    (ie. <code class="filename">C:\pthreads\lib</code>) using the same method as above.
+	  </p></div><div class="sect4" title="Setting the Nullsoft Installer directory"><div class="titlepage"><div><div><h5 class="title"><a id="id423504"></a>Setting the Nullsoft Installer directory</h5></div></div></div><p>
+	    While still being in the directory dialog, switch to <span class="guilabel">Executable files</span>
+	    and add the Nullsoft Installer directory (ie. <code class="filename">C:\Program Files\NSIS</code>) to the list.
+	  </p></div></div></div><div class="sect2" title="2.5. Compilation"><div class="titlepage"><div><div><h3 class="title"><a id="id423529"></a>2.5. Compilation</h3></div></div></div><p>
+	Finally, after all the reading, installing and configuring we are ready to start compiling
+	PowerDNS for Windows.
+      </p><div class="sect3" title="Starting the compilation"><div class="titlepage"><div><div><h4 class="title"><a id="id423539"></a>Starting the compilation</h4></div></div></div><p>
+	  To start the compilation you first have to open the PowerDNS workspace (<code class="filename">powerdns.dsw</code>) using explorer or
+	  from the <span class="guimenu">File-&gt;Open Workspace...</span> menu in <acronym class="acronym">MSVC</acronym>.
+	</p><p>
+	  After you opened the workspace you can start compiling. Check all the checkboxes in the
+	  <span class="guimenu">Build-&gt;Batch Build...</span> menu and press the <span class="guibutton">Build</span> button.
+	</p><p>
+	  Now cross your fingers and go make some coffee or tea while compiling PowerDNS for Windows. :)
+	</p></div><div class="sect3" title="Yay! It compiled"><div class="titlepage"><div><div><h4 class="title"><a id="id423587"></a>Yay! It compiled</h4></div></div></div><p>
+	  Congratulations, you have now compiled PowerDNS for Windows!
+	</p><p>
+	  All the release builds of the binaries are in the <code class="filename">Release</code> directory (including the
+	  generated installer). The debug builds are in the, guess what, <code class="filename">Debug</code> directory.
+	</p><p>
+	  Now you can start installing PowerDNS, but that's beyond the scope of this document. See
+	  the <a class="ulink" href="http://downloads.powerdns.com/documentation/html/" target="_top">online documentation</a> for
+	  more information about that.
+	</p></div><div class="sect3" title="What if it went wrong?"><div class="titlepage"><div><div><h4 class="title"><a id="id423624"></a>What if it went wrong?</h4></div></div></div><p>
+	  If the compilation fails, then try reading this article again, and again to see if you did something wrong.
+	</p><p>
+	  If you are pretty sure that it's a bug, either in the PowerDNS sources, the build
+	  system or in this article, then please send an e-mail to <code class="email">&lt;<a class="email" href="mailto:pdns-dev@mailman.powerdns.com">pdns-dev@mailman.powerdns.com</a>&gt;</code> describing your
+	  problem. We will then try to fix it.
+	</p></div></div><div class="sect2" title="2.6. Miscellaneous"><div class="titlepage"><div><div><h3 class="title"><a id="id423645"></a>2.6. Miscellaneous</h3></div></div></div><p>
+	Some miscellaneous information.
+      </p><div class="sect3" title="Credits"><div class="titlepage"><div><div><h4 class="title"><a id="id423654"></a>Credits</h4></div></div></div><div class="variablelist" title="Michel Stol would like to thank these people:"><p class="title"><b>Michel Stol would like to thank these people:</b></p><dl><dt><span class="term">
+	      Bert Hubert
+	    </span></dt><dd><p>
+		For writing the wonderfull PowerDNS software and learning me stuff
+		that I'd otherwise never had learned.
+	      </p></dd><dt><span class="term">
+	      PowerDNS B.V.
+	    </span></dt><dd><p>
+		For being great colleagues.
+	      </p></dd><dt><span class="term">
+	      The pthreads-win32 crew (see the pthreads-win32 <code class="filename">CONTRIBUTORS</code> file).
+	    </span></dt><dd><p>
+		For easing our porting process by writing a great Windows implementation of pthreads.
+	      </p></dd><dt><span class="term">
+	      The guys over at Nullsoft.
+	    </span></dt><dd><p>
+		For creating the Nullsoft Installer System (<acronym class="acronym">NSIS</acronym>), and Winamp, the program we use every
+		day to make a lot of noise in the office.
+	      </p></dd></dl></div></div><div class="sect3" title="Contact information"><div class="titlepage"><div><div><h4 class="title"><a id="id423734"></a>Contact information</h4></div></div></div><p>
+	  If you have a comment, or a bug report concerning either this document or the PowerDNS sources
+	  you can contact <code class="email">&lt;<a class="email" href="mailto:pdns-dev@mailman.powerdns.com">pdns-dev@mailman.powerdns.com</a>&gt;</code>
+	</p><p>
+	  For general information about PowerDNS, the pdns server, express, documentation etc. I advice you to visit
+	  <a class="ulink" href="http://www.powerdns.com/" target="_top">http://www.powerdns.com/</a>
+	</p><p>
+	  If you are interested in buying PowerDNS you can send a mail to <code class="email">&lt;<a class="email" href="mailto:sales@powerdns.com">sales@powerdns.com</a>&gt;</code>
+	  or you can visit the PowerDNS website at <a class="ulink" href="http://www.powerdns.com/pdns/" target="_top">http://www.powerdns.com/pdns/</a>
+	</p><p>
+	  If you want to praise my work, ask me to marry you, deposit $1.000.000 on my bank account or flame me to death, then 
+	  you can mail me at <code class="email">&lt;<a class="email" href="mailto:michel@powerdns.com">michel@powerdns.com</a>&gt;</code> :)
+	</p></div><div class="sect3" title="Legal information"><div class="titlepage"><div><div><h4 class="title"><a id="id423781"></a>Legal information</h4></div></div></div><p>
+	  Microsoft, Visual C++, Windows, Windows NT, Windows 2000, Windows XP and Win32 are 
+	  either registered trademarks or trademarks of Microsoft Corporation in the U.S.A. and/or other countries.
+	</p><p>
+	  Other product and company names mentioned herein may be the trademarks of their respective owners.
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="compiling-powerdns.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="compiling-powerdns.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="license.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Appendix D. Compiling PowerDNS </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Appendix E. PowerDNS license (GNU General Public License version 2)</td></tr></table></div></body></html>

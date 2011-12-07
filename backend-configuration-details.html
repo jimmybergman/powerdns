@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Declaring and reading configuration details</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backend-writers-guide.html" title="Appendix C. Backend writers' guide" /><link rel="prev" href="backend-error-reporting.html" title="2. Reporting errors" /><link rel="next" href="rw-backends.html" title="4. Read/write slave-capable backends" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Declaring and reading configuration details</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="backend-error-reporting.html">Prev</a> </td><th width="60%" align="center">Appendix C. Backend writers' guide</th><td width="20%" align="right"> <a accesskey="n" href="rw-backends.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Declaring and reading configuration details"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="backend-configuration-details"></a>3. Declaring and reading configuration details</h2></div></div></div><p>
+	  It is highly likely that a backend needs configuration details. On launch, these parameters need to be declared with PDNS so it knows it
+	  should accept them in the configuration file and on the commandline. Furthermore, they will be listed in the output of 
+	  <span class="command"><strong>--help</strong></span>.
+	</p><p>
+	  Declaring arguments is done by implementing the member function <code class="function">declareArguments()</code> in the factory class of your
+	  backend. PDNS will call this method after launching the backend.
+	</p><p>
+	  In the <code class="function">declareArguments()</code> method, the function <code class="function">declare()</code> is available. The exact definitions:
+	  </p><div class="variablelist"><dl><dt><span class="term">void declareArguments(const string &amp;suffix="")</span></dt><dd><p>
+		  This method is called to allow a backend to register configurable parameters. The suffix is the sub-name of this module. There is
+		  no need to touch this suffix, just pass it on to the declare method.
+		</p></dd><dt><span class="term">void declare(const string &amp;suffix, const string &amp;param, const string &amp;explanation, const string &amp;value)</span></dt><dd><p>The suffix is passed to your method, and can be passed on to declare. <span class="command"><strong>param</strong></span> is the name of your parameter.
+		  <span class="command"><strong>explanation</strong></span> is what will appear in the output of --help. Furthermore, a default value can be supplied in the 
+		  <span class="command"><strong>value</strong></span> parameter.
+		</p></dd></dl></div><p>
+	</p><p>
+	  A sample implementation:
+	  </p><pre class="programlisting">
+	    void declareArguments(const string &amp;suffix)
+	    {
+ 	      declare(suffix,"dbname","Pdns backend database name to connect to","powerdns");
+	      declare(suffix,"user","Pdns backend user to connect as","powerdns");
+	      declare(suffix,"host","Pdns backend host to connect to","");
+	      declare(suffix,"password","Pdns backend password to connect with","");
+	    }
+	  </pre><p>
+	</p><p>
+	  After the arguments have been declared, they can be accessed from your backend using the <code class="function">mustDo()</code>,
+	  <code class="function">getArg()</code> and <code class="function">getArgAsNum()</code> methods. The are defined as follows in the DNSBackend class:
+	</p><p>
+	  </p><div class="variablelist"><dl><dt><span class="term">void setArgPrefix(const string &amp;prefix)</span></dt><dd><p>
+		  Must be called before any of the other accessing functions are used. Typical usage is '<code class="function">setArgPrefix("mybackend"+suffix)</code>'
+		  in the constructor of a backend.
+		</p></dd><dt><span class="term">bool mustDo(const string &amp;key)</span></dt><dd><p>
+		  Returns true if the variable <code class="function">key</code> is set to anything but 'no'.
+		</p></dd><dt><span class="term">const string&amp; getArg(const string &amp;key)</span></dt><dd><p>
+		  Returns the exact value of a parameter.
+		</p></dd><dt><span class="term">int getArgAsNum(const string &amp;key)</span></dt><dd><p>
+		  Returns the numerical value of a parameter. Uses <code class="function">atoi()</code> internally
+		</p></dd></dl></div><p>
+	</p><p>
+	  Sample usage from the BindBackend, using the <span class="command"><strong>bind-example-zones</strong></span> and <span class="command"><strong>bind-config</strong></span>
+	  parameters.
+	  </p><pre class="programlisting">
+  if(mustDo("example-zones")) {
+    insert(0,"www.example.com","A","1.2.3.4");
+    /* ... */
+  }
+  
+
+  if(!getArg("config").empty()) {
+    BindParser BP;
+    
+    BP.parse(getArg("config"));
+  }
+
+	  </pre><p>
+	</p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="backend-error-reporting.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backend-writers-guide.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="rw-backends.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Reporting errors </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 4. Read/write slave-capable backends</td></tr></table></div></body></html>

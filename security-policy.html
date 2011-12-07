@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>4. Security</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdns.html" title="Chapter 1. The PowerDNS dynamic nameserver" /><link rel="prev" href="changelog.html" title="3. Release notes" /><link rel="next" href="powerdns-advisory-2006-01.html" title="5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">4. Security</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="changelog.html">Prev</a> </td><th width="60%" align="center">Chapter 1. The PowerDNS dynamic nameserver</th><td width="20%" align="right"> <a accesskey="n" href="powerdns-advisory-2006-01.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="4. Security"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="security-policy"></a>4. Security</h2></div></div></div><p>
+	If you have a security problem to report, please email us at both <code class="email">&lt;<a class="email" href="mailto:powerdns@powerdns.com">powerdns@powerdns.com</a>&gt;</code> and at
+	<code class="email">&lt;<a class="email" href="mailto:ahu@ds9a.nl">ahu@ds9a.nl</a>&gt;</code>. We adhere to the <a class="ulink" href="http://www.wiretrip.net/rfp/policy.html" target="_top">Rain Forest Puppy
+	  Full Disclosure Policy (RFPolicy) v2.0</a> and we ask you to do the same. In particular, please do not mail security
+	issues to public lists unless we do not get back to you in a timely manner.
+      </p><p>
+	We remind PowerDNS users that under the terms of the GNU General Public License, PowerDNS comes with ABSOLUTELY NO WARRANTY. 
+	This license is included in the distribution and in this documentation, see <a class="xref" href="license.html" title="Appendix E. PowerDNS license (GNU General Public License version 2)">Appendix E, <i>PowerDNS license (GNU General Public License version 2)</i></a>.
+      </p><p>
+	As of the 6th of January 2010, no actual security problems with PowerDNS 2.9.22, Recursor 3.1.7.2, or later are known about.  This page 
+	will be updated with all bugs which are deemed to be security problems, or could conceivably lead to those. Any such notifications
+	will also be sent to all PowerDNS mailinglists.
+      </p><p>
+	Version 3.1.7.1 and earlier of the PowerDNS recursor were vulnerable to a probably exploitable buffer overflow and a spoofing attack. 
+	For more detail, see <a class="xref" href="powerdns-advisory-2010-01.html" title="10. PowerDNS Security Advisory 2010-01: PowerDNS Recursor up to and including 3.1.7.1 can be brought down and probably exploited">Section 10, “PowerDNS Security Advisory 2010-01: PowerDNS Recursor up to and including 3.1.7.1 can be brought down and probably exploited”</a> and
+	<a class="xref" href="powerdns-advisory-2010-02.html" title="11. PowerDNS Security Advisory 2010-02: PowerDNS Recursor up to and including 3.1.7.1 can be spoofed into accepting bogus data">Section 11, “PowerDNS Security Advisory 2010-02: PowerDNS Recursor up to and including 3.1.7.1 can be spoofed into accepting bogus data”</a>.
+      </p><p>
+	Version 3.1.4 and earlier of the PowerDNS recursor were vulnerable to a spoofing attack. For more detail, see <a class="xref" href="powerdns-advisory-2008-01.html" title="7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor">Section 7, “PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor”</a>.
+      </p><p>
+	Version 3.1.3 and earlier of the PowerDNS recursor contain two security issues, both of which can lead to a denial of service, both of which can be triggered
+	by remote users. One of the issues might lead be exploited and lead to a system compromise. For more detail, see <a class="xref" href="powerdns-advisory-2006-01.html" title="5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable">Section 5, “PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable”</a> and
+	<a class="xref" href="powerdns-advisory-2006-02.html" title="6. PowerDNS Security Advisory 2006-02: Zero second CNAME TTLs can make PowerDNS exhaust allocated stack space, and crash">Section 6, “PowerDNS Security Advisory 2006-02: Zero second CNAME TTLs can make PowerDNS exhaust allocated stack space, and crash”</a>.
+      </p><p>
+	Version 3.0 of the PowerDNS recursor contains a denial of service bug which can be exploited remotely. This bug, which we believe to only lead to a crash,
+	has been fixed in 3.0.1. There are no guarantees however, so an upgrade from 3.0 is highly recommended.
+      </p><p>
+	All versions of PowerDNS before 2.9.21.1 do not respond to certain queries. This in itself is not a problem, but since the discovery by Dan Kaminsky
+	of a new spoofing technique, this silence for queries PowerDNS considers invalid, within a valid domain, allows attackers more chances
+	to feed *other* resolvers bad data.
+      </p><p>
+	All versions of PowerDNS before 2.9.18 contain the following two bugs, which only apply to installations running with the LDAP backend, or installations providing recursion
+	to a limited range of IP addresses. If any of these apply to you, an upgrade is highly advised:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	      The LDAP backend did not properly escape all queries, allowing it to fail and not answer questions. We have not investigated further risks involved,
+	      but we advise LDAP users to update as quickly as possible (Norbert Sendetzky, Jan de Groot)
+	    </p></li><li class="listitem"><p>
+	      Questions from clients denied recursion could blank out answers to clients who are allowed recursion services, temporarily. Reported by Wilco Baan.
+	      This would've made it possible for outsiders to blank out a domain temporarily to your users. Luckily PowerDNS would send out SERVFAIL or Refused, and
+	      not a denial of a domain's existence.
+	    </p></li></ul></div><p>
+      </p><p>
+	All versions of PowerDNS before 2.9.17 are known to suffer from remote denial of service problems which can disrupt operation. Please upgrade
+	to 2.9.17 as this page will only contain detailed security information from 2.9.17 onwards.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="changelog.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdns.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="powerdns-advisory-2006-01.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Release notes </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable</td></tr></table></div></body></html>

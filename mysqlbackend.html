@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. MySQL backend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="next" href="randombackend.html" title="3. Random Backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. MySQL backend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="backends-detail.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="randombackend.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. MySQL backend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="mysqlbackend"></a>2. MySQL backend</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="mysqlbackend.html#id415472">2.1. Configuration settings</a></span></dt><dt><span class="sect2"><a href="mysqlbackend.html#id415571">2.2. Notes</a></span></dt></dl></div><p>
+	</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	    This backend is deprecated! Use the Generic MySQL backend which is better in <span class="command"><strong>all</strong></span> respects.
+	    It does support master/slave operation, this backend does not. See <a class="xref" href="generic-mypgsql-backends.html" title="5. Generic MySQL and PgSQL backends">Section 5, “Generic MySQL and PgSQL backends”</a>.
+	  </p><p>
+	    So stop reading here unless you already have a database filled with 'mysql' records.
+	  </p></td></tr></table></div><p>
+      </p><p>
+	</p><div class="table"><a id="id415373"></a><p class="title"><b>Table A.2. MySQL backend capabilities</b></p><div class="table-contents"><table summary="MySQL backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>No</td></tr><tr><td>Slave</td><td>Yes</td></tr><tr><td>Superslave</td><td>No</td></tr><tr><td>Autoserial</td><td>Yes</td></tr><tr><td>Case</td><td>Insensitive</td></tr><tr><td>DNSSEC</td><td>No (but see Generic backend!)</td></tr><tr><td>Module name</td><td>mysql</td></tr><tr><td>Launch name</td><td>mysql</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+        The MySQL Backend as present in PDNS is fixed - it requires a certain database schema to function. This schema corresponds to this create statement:
+        
+        </p><pre class="screen">
+          CREATE TABLE records (
+	  id int(11) NOT NULL auto_increment,
+	  domain_id int(11) NOT NULL,
+	  name varchar(255) NOT NULL,
+	  type varchar(10) NOT NULL,
+	  content varchar(255) NOT NULL,
+	  ttl int(11) NOT NULL,
+	  prio int(11) default NULL,
+	  change_date int(11) default NULL,
+	  PRIMARY KEY (id),
+	  KEY name_index(name),
+	  KEY nametype_index(name,type),
+	  KEY domainid_index(domain_id)
+	  );
+        </pre><p>
+        
+        Every domain should have a unique domain_id, which should remain identical for all records in a domain. Records with a domain_id that
+	differs from that in the domain SOA record will not appear in a zone transfer.
+
+      </p><p>
+	The change_date may optionally
+        be updated to the time_t (the number of seconds since midnight UTC at the start of 1970), and is in that case used to auto calculate the 
+        SOA serial number in case that is unspecified.
+        
+      </p><div class="sect2" title="2.1. Configuration settings"><div class="titlepage"><div><div><h3 class="title"><a id="id415472"></a>2.1. Configuration settings</h3></div></div></div><p>
+	  WARNING! Make sure that you can actually resolve the hostname of your database without accessing the database! It is advised to supply
+	  an IP address here to prevent chicken/egg problems!
+	</p><p>
+          </p><div class="variablelist"><dl><dt><span class="term">mysql-dbname</span></dt><dd><p>
+                  Database name to connect to
+                </p></dd><dt><span class="term">mysql-host</span></dt><dd><p>
+                  Database host to connect to
+                </p></dd><dt><span class="term">mysql-password</span></dt><dd><p>
+                  Password to connect with
+                </p></dd><dt><span class="term">mysql-socket</span></dt><dd><p>
+                  MySQL socket to use for connecting
+                </p></dd><dt><span class="term">mysql-table</span></dt><dd><p>
+                  MySQL table name. Defaults to 'records'.
+                </p></dd><dt><span class="term">mysql-user</span></dt><dd><p>
+                  MySQL user to connect as
+                </p></dd></dl></div><p>
+	</p></div><div class="sect2" title="2.2. Notes"><div class="titlepage"><div><div><h3 class="title"><a id="id415571"></a>2.2. Notes</h3></div></div></div><p>
+	  It has been observed that InnoDB tables outperform the default MyISAM tables by a large margin. Furthermore, the default 
+	  number of backends (3) should be raised to 10 or 15 for busy servers.
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="backends-detail.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="randombackend.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Appendix A. Backends in detail </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 3. Random Backend</td></tr></table></div></body></html>

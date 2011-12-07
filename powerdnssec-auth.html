@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 12. Serving authoritative DNSSEC data</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="upgrades.html" title="Chapter 11. Notes on upgrading" /><link rel="next" href="dnssec-supported.html" title="2. Profile, Supported Algorithms, Record Types &amp; Modes of operation" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 12. Serving authoritative DNSSEC data</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="upgrades.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="dnssec-supported.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 12. Serving authoritative DNSSEC data"><div class="titlepage"><div><div><h2 class="title"><a id="powerdnssec-auth"></a>Chapter 12. Serving authoritative DNSSEC data</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="powerdnssec-auth.html#dnssec-introduction">1. A brief introduction to DNSSEC</a></span></dt><dt><span class="section"><a href="dnssec-supported.html">2. Profile, Supported Algorithms, Record Types &amp; Modes of operation</a></span></dt><dd><dl><dt><span class="section"><a href="dnssec-supported.html#dnssec-presigned-mode">2.1. DNSSEC: live-signed vs orthodox 'pre-signed' mode</a></span></dt></dl></dd><dt><span class="section"><a href="dnssec-migration.html">3. Migration</a></span></dt><dd><dl><dt><span class="section"><a href="dnssec-migration.html#powerdnssec-migration">3.1. From an existing PowerDNS installation</a></span></dt><dt><span class="section"><a href="dnssec-migration.html#dnssec-bind-migration">3.2. From existing non-DNSSEC non-PowerDNS setups</a></span></dt><dt><span class="section"><a href="dnssec-migration.html#dnssec-dnssec-migration-presigned">3.3. From existing DNSSEC non-PowerDNS setups, pre-signed</a></span></dt><dt><span class="section"><a href="dnssec-migration.html#dnssec-dnssec-migration-live">3.4. From existing DNSSEC non-PowerDNS setups, live signing</a></span></dt></dl></dd><dt><span class="section"><a href="powerdnssec.html">4. Records, Keys, signatures, hashes within PowerDNSSEC in online signing mode</a></span></dt><dd><dl><dt><span class="section"><a href="powerdnssec.html#nsecX">4.1. (Hashed) Denial of Existence</a></span></dt><dt><span class="section"><a href="powerdnssec.html#rrsig">4.2. Signatures</a></span></dt></dl></dd><dt><span class="section"><a href="pdnssec.html">5. 'pdnssec' for PowerDNSSEC command &amp; control</a></span></dt><dt><span class="section"><a href="dnssec-advice-precautions.html">6. DNSSEC advice &amp; precautions</a></span></dt><dd><dl><dt><span class="section"><a href="dnssec-advice-precautions.html#dnssec-packet-size-tcp">6.1. Packet sizes, fragments, TCP/IP service</a></span></dt></dl></dd><dt><span class="section"><a href="dnssec-operational-doctrine.html">7. Operational instructions</a></span></dt><dd><dl><dt><span class="section"><a href="dnssec-operational-doctrine.html#publish-ds">7.1. Publishing a DS</a></span></dt><dt><span class="section"><a href="dnssec-operational-doctrine.html#zsk-rollover">7.2. ZSK rollover</a></span></dt><dt><span class="section"><a href="dnssec-operational-doctrine.html#ksk-rollover">7.3. KSK rollover</a></span></dt><dt><span class="section"><a href="dnssec-operational-doctrine.html#going-insecure">7.4. Going insecure</a></span></dt><dt><span class="section"><a href="dnssec-operational-doctrine.html#nsec3-change">7.5. NSEC(3) change</a></span></dt></dl></dd><dt><span class="section"><a href="dnssec-modes.html">8. Modes of operation</a></span></dt><dd><dl><dt><span class="section"><a href="dnssec-modes.html#dnssec-presigned">8.1. PowerDNSSEC Pre-signed records</a></span></dt><dt><span class="section"><a href="dnssec-modes.html#dnssec-frontserver">8.2. PowerDNSSEC Front-signing</a></span></dt><dt><span class="section"><a href="dnssec-modes.html#dnssec-bind-hybrid">8.3. PowerDNSSEC hybrid BIND-mode operation</a></span></dt><dt><span class="section"><a href="dnssec-modes.html#dnssec-direct-database">8.4. Rules for filling out fields in database backends</a></span></dt></dl></dd><dt><span class="section"><a href="dnssec-security.html">9. Security</a></span></dt><dt><span class="section"><a href="dnssec-performance.html">10. Performance</a></span></dt><dt><span class="section"><a href="dnssec-thanks-to.html">11. Thanks to, acknowledgements</a></span></dt></dl></div><p>
+    (only available in PowerDNS 3.0 and beyond, not yet available in the PowerDNS Recursor)
+  </p><p>
+    PowerDNS contains support for DNSSEC, enabling the easy serving of DNSSEC secured data,
+    with minimal administrative overhead.
+  </p><p>
+    In PowerDNSSEC, DNS and signatures and keys are (usually) treated as separate entities. The domain &amp; record
+    storage is thus almost completely devoid of DNSSEC record types.
+  </p><p>
+    Instead, keying material is stored separately, allowing operators to focus on the already complicated task 
+    of keeping DNS data correct. In practice, DNSSEC related material is often stored within the same database, 
+    but within separate tables.
+  </p><p>
+    If a DNSSEC configuration is found for a domain, the PowerDNS daemon will provide keys, signatures and (hashed)
+    denials of existence automatically.
+  </p><p>
+    As an example, securing an existing zone can be as simple as:
+    </p><pre class="screen">
+$ pdnssec secure-zone powerdnssec.org
+$ pdnssec rectify-zone    
+    </pre><p>
+  </p><p>
+    Alternatively, PowerDNS can serve pre-signed zones, without knowledge of private keys.
+  </p><div class="section" title="1. A brief introduction to DNSSEC"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="dnssec-introduction"></a>1. A brief introduction to DNSSEC</h2></div></div></div><p>
+    DNSSEC is a complicated subject, but it is not required to know all the ins and outs of this protocol to be able to use PowerDNSSEC.
+    In this section, we explain the core concepts that are needed to operate a PowerDNSSEC installation.
+  </p><p>
+    Zone material is enhanced with signatures using 'keys'. Such a signature (called an RRSIG) is a cryptographic guarantee that the data served
+    is the original data. DNSSEC keys are asymmetric (RSA, DSA or GOST), the public part is published over DNS and is called a 
+    DNSKEY record, and is used for verification. The private part is used for signing and is never published.
+  </p><p>
+    To make sure that the internet knows that the key that is used for signing is the authentic key, confirmation can be gotten from
+    the parent zone. This means that to become operational, a zone operator will have to publish a representation of the signing key to 
+    the parent zone, often a ccTLD or a gTLD. This representation is called a DS record, and is a shorter (hashed) version of the DNSKEY.
+  </p><p>
+    Once the parent zone has the DS, and the zone is signed with the DNSSEC key, we are done in theory. 
+  </p><p>
+    However, for a variety of reasons, most DNSSEC operations run with another layer of keys. The so called 'Key Signing Key' is sent to the
+    parent zone, and this Key Signing Key is used to sign a new set of keys called the Zone Signing Keys.
+  </p><p>
+    This setup allows us to change our keys without having to tell the zone operator about it.
+  </p><p>
+    A final challenge is how to DNSSEC sign the answer 'no such domain'. In the language of DNS, the way to say 'there is no such domain' (NXDOMAIN)
+    or there is no such record type is to send an empty answer. Such empty answers are universal, and can't be signed.
+  </p><p>
+    In DNSSEC parlance we therefore sign a record that says 'there are no domains between A.powerdnssec.org and C.powerdnssec.org'. This 
+    securely tells the world that B.powerdnssec.org does not exist. This solution is called NSEC, and is simple but has downsides - it also 
+    tells the world exactly which records DO exist. 
+  </p><p>
+    So alternatively, we can say that if a certain mathematical operation (an 'iterated salted hash') is performed on a question, that
+    no valid answers exist that have as outcome of this operation an answer between two very large numbers. This leads to the same 'proof of
+    non-existence'. This solution is called NSEC3.
+  </p><p>
+    A PowerDNSSEC zone can either be operated in NSEC or in one of two NSEC3 modes ('inclusive' and 'narrow').
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="upgrades.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="dnssec-supported.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 11. Notes on upgrading </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Profile, Supported Algorithms, Record Types &amp; Modes of operation</td></tr></table></div></body></html>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Backend developer HOWTO</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="faq.html" title="Chapter 22. HOWTO &amp; Frequently Asked Questions" /><link rel="prev" href="pdns-users-faq.html" title="2. Using and Compiling PowerDNS FAQ" /><link rel="next" href="powerdns-company-faq.html" title="4. About PowerDNS.COM BV, 'the company'" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Backend developer HOWTO</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="pdns-users-faq.html">Prev</a> </td><th width="60%" align="center">Chapter 22. HOWTO &amp; Frequently Asked Questions</th><td width="20%" align="right"> <a accesskey="n" href="powerdns-company-faq.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Backend developer HOWTO"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="pdns-devel-faq"></a>3. Backend developer HOWTO</h2></div></div></div><p>
+	Writing backends without access to the full PDNS source means that you need to write code that can be loaded by PDNS at runtime. 
+	This in turn means that you need to use the same compiler that we do. 
+      </p><p>
+	Furthermore, your pdns_server executable must be dynamically linked. The default .rpm PDNS contains a static binary so you need to retrieve the
+	dynamic rpm or the dynamic tar.gz or the Debian unstable ('Woody') deb. FreeBSD dynamic releases are forthcoming.
+      </p><div class="variablelist"><dl><dt><span class="term">Q: Will PDNS drivers work with other PDNS versions than they were compiled for?</span></dt><dd><p>
+	      A: 'Probably'. We make no guarantees. Efforts have been made to keep the interface between the backend and PDNS as thin
+	      as possible. For example, a backend compiled with the 1.99.11 backend development kit works with 1.99.10. But don't count on it.
+	      We will notify when we think an incompatible API change has occured but you are best off recompiling your driver for each
+	      new PDNS release.
+	    </p></dd><dt><span class="term">Q: What is in that DNSPacket * pointer passed to lookup!</span></dt><dd><p>
+	      A: For reasons outlined above, you should treat that pointer as opaque and only access it via the <code class="function">getRemote()</code> 
+	      functions made available and documented above. The DNSPacket class changes a lot and this level of indirection allows for greater
+	      changes to be made without changing the API to the backend coder.
+	    </p></dd><dt><span class="term">Q: How is the PowerDNS Open Source Backend Development Kit licensed?</span></dt><dd><p>
+	      A: MIT X11, a very liberal license permitting basically everything.
+	    </p></dd><dt><span class="term">Q: Can I release the backend I wrote?</span></dt><dd><p>
+	      A: Please do! If you tell us about it we will list you on our page.
+	    </p></dd><dt><span class="term">Q: Can I sell backends I wrote?</span></dt><dd><p>
+	      A: You can. Again, if you tell us about them we will list your backend on the site. You can keep the source of your backend
+	      secret if you want, or you can share it with the world under any license of your chosing.
+	    </p></dd><dt><span class="term">Q: Will PowerDNS use my code in the PDNS distribution?</span></dt><dd><p>
+	      A: If your license permits it and we like your backend, we sure will.  If your license does not permit it but we like your 
+	      backend anyway we may contact you. 
+	    </p></dd><dt><span class="term">Q: My backend compiles but when I try to load it, it says 'undefined symbol: BackendMakers__Fv'</span></dt><dd><p>
+	      A: You compiled with the wrong GCC. Use GCC 3.x for Linux, 2.95.x for FreeBSD. You may want to change g++ to g++-3.0 in the Makefile,
+	      or change your path so that 3.x is used.
+	    </p></dd><dt><span class="term">Q: I downloaded a dynamic copy of pdns_server but it doesn't run, even without my backend</span></dt><dd><p>
+	      A: Run 'ldd' on the pdns_server binary and figure out what libraries you are missing. Most likely you need to install gcc 3.0 libraries, 
+	      RedHat 7.1 and 7.2 have packages available, Debian installs these by default if you use the 'unstable deb' of PDNS.
+	    </p></dd><dt><span class="term">Q: What is this 'AhuException' I keep reading about?</span></dt><dd><p>
+	      A: This name has historical reasons and has <a class="ulink" href="http://ds9a.nl" target="_top">no significance</a>. 
+	    </p></dd><dt><span class="term">Q: I need a backend but I can't write it, can you help?</span></dt><dd><p>
+	      A: Yes, we also do custom development. Contact us at powerdns.support.sales@netherlabs.eu, or visit
+	      <a class="ulink" href="http://www.powerdns.com" target="_top">www.powerdns.com</a>
+	    </p></dd></dl></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pdns-users-faq.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="faq.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="powerdns-company-faq.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Using and Compiling PowerDNS FAQ </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 4. About PowerDNS.COM BV, 'the company'</td></tr></table></div></body></html>

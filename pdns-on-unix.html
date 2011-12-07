@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Running PDNS on unix</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="installing-on-unix.html" title="Chapter 2. Installing on Unix" /><link rel="prev" href="testing.html" title="2. Testing your install" /><link rel="next" href="windows.html" title="Chapter 3. Installing on Microsoft Windows" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Running PDNS on unix</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="testing.html">Prev</a> </td><th width="60%" align="center">Chapter 2. Installing on Unix</th><td width="20%" align="right"> <a accesskey="n" href="windows.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Running PDNS on unix"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="pdns-on-unix"></a>3. Running PDNS on unix</h2></div></div></div><p>
+      PDNS is normally controlled via a SysV-style init.d script, often located in <code class="filename">/etc/init.d</code> or
+      <code class="filename">/etc/rc.d/init.d</code>. This script accepts the following commands:
+      </p><div class="variablelist"><dl><dt><span class="term">monitor</span></dt><dd><p>
+	      Monitor is a special way to view the daemon. It executes PDNS in the foreground with 
+	      a lot of logging turned on, which helps in determining startup problems. 
+
+	      Besides running in the foreground, the raw PDNS control socket is made available. All external
+	      communication with the daemon is normally sent over this socket. While useful, the control console 
+	      is not an officially supported feature. Commands which work are: <span class="command"><strong>QUIT</strong></span>, <span class="command"><strong>SHOW *</strong></span>,
+	      <span class="command"><strong>SHOW varname</strong></span>, <span class="command"><strong>RPING</strong></span>.
+	    </p></dd><dt><span class="term">start</span></dt><dd><p>
+	      Start PDNS in the background. Launches the daemon but makes no special effort to determine success, 
+	      as making database connections may take a while. Use <span class="command"><strong>status</strong></span> to query success. You
+	      can safely run <span class="command"><strong>start</strong></span> many times, it will not start additional PDNS instances.
+	    </p></dd><dt><span class="term">restart</span></dt><dd><p>
+	      Restarts PDNS if it was running, starts it otherwise.
+	    </p></dd><dt><span class="term">status</span></dt><dd><p>
+	      Query PDNS for status. This can be used to figure out if a launch was successful.
+	      The status found is prefixed by the PID of the main PDNS process. 
+	    </p></dd><dt><span class="term">stop</span></dt><dd><p>
+	      Requests that PDNS stop. Again, does not confirm success. Success can be ascertained with the <span class="command"><strong>status</strong></span> command.
+	    </p></dd><dt><span class="term">dump</span></dt><dd><p>
+	      Dumps a lot of statistics of a running PDNS daemon. It is also possible to single out specific variable by using 
+	      the <span class="command"><strong>show</strong></span> command.
+	    </p></dd><dt><span class="term">show variable</span></dt><dd><p>
+	      Show a single statistic, as present in the output of the <span class="command"><strong>dump</strong></span>.
+	    </p></dd><dt><span class="term">mrtg</span></dt><dd><p>
+	      See the performance monitoring <a class="xref" href="monitoring.html" title="Chapter 6. Logging &amp; Monitoring Authoritative Server performance">Chapter 6, <i>Logging &amp; Monitoring Authoritative Server performance</i></a>.
+	    </p></dd></dl></div><p>
+    </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="testing.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="installing-on-unix.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="windows.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Testing your install </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 3. Installing on Microsoft Windows</td></tr></table></div></body></html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Modules &amp; Backends</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="pdns-internals.html" title="Appendix B. PDNS internals" /><link rel="prev" href="guardian.html" title="2. Guardian" /><link rel="next" href="dns-to-query.html" title="4. How PDNS translates DNS queries into backend queries" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Modules &amp; Backends</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="guardian.html">Prev</a> </td><th width="60%" align="center">Appendix B. PDNS internals</th><td width="20%" align="right"> <a accesskey="n" href="dns-to-query.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Modules &amp; Backends"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="modules"></a>3. Modules &amp; Backends</h2></div></div></div><p>
+	PDNS has the concept of backends and modules. Non-static PDNS distributions have the ability to load new modules at runtime, while the
+	static versions come with a number of modules built in, but cannot load more. 
+      </p><p>
+	Related parameters are:
+	</p><div class="variablelist"><dl><dt><span class="term">--help</span></dt><dd><p>
+                Outputs all known parameters, including those of launched backends, see below.
+	      </p></dd><dt><span class="term">--launch=backend,backend1,backend1:name</span></dt><dd><p>
+                Launches backends. In its most simple form, supply all backends that need to be launched. If you find
+                that you need to launch single backends multiple times, you can specify a name for later instantiations.
+                In this case, there are 2 instances of backend1, and the second one is called 'name'.
+
+                This means that <span class="command"><strong>--backend1-setting</strong></span> is available to configure the first or main instance, and
+                <span class="command"><strong>--backend1-name-setting</strong></span> for the second one.
+              </p></dd><dt><span class="term">--load-modules=/directory/libyourbackend.so</span></dt><dd><p>
+                If backends are available in nonstandard directories, specify their location here. Multiple files
+                can be loaded if separated by commas. Only available in non-static PDNS distributions.
+              </p></dd><dt><span class="term">--list-modules</span></dt><dd><p>
+                Will list all available modules, both compiled in and in dynamically loadable modules.
+              </p></dd></dl></div><p>
+	To run on the commandline, use the <span class="command"><strong>pdns_server</strong></span> binary. For example, to see options for the gpgsql backend, 
+	use the following:
+	</p><pre class="screen">
+	  $ /usr/sbin/pdns_server --launch=gpgsql --help=gpgsql
+	</pre><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="guardian.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="pdns-internals.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="dns-to-query.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Guardian </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 4. How PDNS translates DNS queries into backend queries</td></tr></table></div></body></html>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>4. PowerDNS Recursor performance</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="built-in-recursor.html" title="Chapter 16. PowerDNS Recursor: a high performance resolving nameserver" /><link rel="prev" href="rec-control.html" title="3. Controlling and querying the recursor" /><link rel="next" href="recursor-details.html" title="5. Details" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">4. PowerDNS Recursor performance</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="rec-control.html">Prev</a> </td><th width="60%" align="center">Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</th><td width="20%" align="right"> <a accesskey="n" href="recursor-details.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="4. PowerDNS Recursor performance"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="recursor-performance"></a>4. PowerDNS Recursor performance</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="recursor-performance.html#recursor-caches">4.1. Recursor Caches</a></span></dt></dl></div><p>
+	To get the best out of the PowerDNS recursor, which is important if you are doing thousands of queries per second, please 
+	consider the following. 
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	      Limit the size of the caches to a sensible value. Cache hit rate does not improve meaningfully beyond 4 million <span class="command"><strong>max-cache-entries</strong></span> per thread,
+	      reducing the memory footprint reduces CPU cache misses. See below for more information about the various caches.
+	    </p></li><li class="listitem"><p>
+	      Compile using g++ 4.1 or later. This compiler really does a good job on PowerDNS, much better than 3.4 or 4.0.
+	    </p></li><li class="listitem"><p>
+	      On AMD/Intel hardware, wherever possible, run a 64-bit binary. This delivers a nearly twofold performance increase. On UltraSPARC, there is no need to run with 64 bits.
+	    </p></li><li class="listitem"><p>
+	      Consider performing a 'profiled build' as described in the README. This is good for a 20% performance boost in some cases.
+	    </p></li><li class="listitem"><p>
+	      When running with &gt;3000 queries per second, and running Linux versions prior to 2.6.17 on some motherboards, your computer may 
+	      spend an inordinate amount of time working around an ACPI bug for each call to gettimeofday. This is solved by rebooting with 'clock=tsc'
+	      or upgrading to a 2.6.17 kernel.
+	    </p><p>
+	      The above is relevant if dmesg shows <span class="command"><strong>Using pmtmr for high-res timesource</strong></span>
+	    </p></li><li class="listitem"><p>
+	      A busy server may need hundreds of file descriptors on startup, and deals with spikes better if it has that many available
+	      later on. Linux by default restricts processes to 1024 file descriptors, which should suffice most of the time, but Solaris
+	      has a default limit of 256. This can be raised using the ulimit command. FreeBSD has a default limit that is high enough for even
+	      very heavy duty use.
+	    </p></li><li class="listitem"><p>
+	      For older versions &lt;3.2: If you need it, try <span class="command"><strong>--fork</strong></span>, this will fork the daemon into two halves, allowing it to benefit from a second CPU.
+	      This feature almost doubles performance, but is a bit of a hack. 
+	    </p></li><li class="listitem"><p>
+	      for 3.2 and higher, set 'threads' to your number of CPUs.
+	    </p></li><li class="listitem"><p>
+	      For best PowerDNS Recursor performance, use a recent version of your operating system, since this generally
+	      offers the best event multiplexer implementation available (kqueue, epoll, ports or /dev/poll). 
+	    </p></li><li class="listitem"><p>
+	      A Recursor under high load puts a severe stress on any stateful (connection tracking) firewall, so much
+	      so that the firewall may fail.
+	    </p><p>
+	      Specifically, many Linux distributions run with a connection tracking firewall configured. For high load operation (thousands of queries/second), 
+	      It is advised to either turn off iptables 
+	      completely, or use the 'NOTRACK' feature to make sure DNS traffic bypasses the connection tracking.
+	    </p><p>
+	      Sample Linux command lines would be:
+	      </p><pre class="screen">
+	      # iptables -t raw -I OUTPUT -p udp --dport 53 -j NOTRACK
+	      # iptables -t raw -I PREROUTING -p udp --sport 53 -j NOTRACK
+	      # iptables -I INPUT -p udp --dport 53 -j ACCEPT
+	      # iptables -I INPUT -p udp --sport 53 -j ACCEPT
+	      # iptables -I OUTPUT -p udp --dport 53 -j ACCEPT
+
+              # # optionally
+	      # ip6tables -t raw -I OUTPUT -p udp --dport 53 -j NOTRACK
+	      # ip6tables -t raw -I PREROUTING -p udp --sport 53 -j NOTRACK
+	      # ip6tables -I INPUT -p udp --dport 53 -j ACCEPT
+	      # ip6tables -I INPUT -p udp --sport 53 -j ACCEPT
+	      # ip6tables -I OUTPUT -p udp --dport 53 -j ACCEPT
+	      </pre><p>
+	    </p></li></ul></div><p>
+	Following the instructions above, you should be able to attain very high query rates.
+      </p><div class="sect2" title="4.1. Recursor Caches"><div class="titlepage"><div><div><h3 class="title"><a id="recursor-caches"></a>4.1. Recursor Caches</h3></div></div></div><p>
+	  The PowerDNS Recursor contains a number of caches, or information stores:
+	  </p><div class="variablelist"><dl><dt><span class="term">Nameserver speeds cache</span></dt><dd><p>
+		The "NSSpeeds" cache contains the average latency to all remote authoritative servers.
+	      </p></dd><dt><span class="term">Negative cache</span></dt><dd><p>
+		The "Negcache" contains all domains known not to exist, or record types not to exist for a domain.
+	      </p></dd><dt><span class="term">Recursor Cache</span></dt><dd><p>
+		The Recursor Cache contains all DNS knowledge gathered over time.
+	      </p></dd><dt><span class="term">Packet Cache</span></dt><dd><p>
+		The Packet Cache contains previous answers sent to clients. If a question comes in that matches a previous answer, this is sent back directly.
+	      </p></dd></dl></div><p>
+	</p><p>
+	  The Packet Cache is consulted first, immediately after receiving a packet. This means that a high hitrate for the Packet Cache automatically lowers the cache hitrate of 
+	  subsequent caches. This explains why releases 3.2 and beyond see dramatically lower DNS cache hitrates, since this is the first version with a Packet Cache.
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="rec-control.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="built-in-recursor.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="recursor-details.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Controlling and querying the recursor </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 5. Details</td></tr></table></div></body></html>

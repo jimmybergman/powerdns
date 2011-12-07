@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdns.html" title="Chapter 1. The PowerDNS dynamic nameserver" /><link rel="prev" href="security-policy.html" title="4. Security" /><link rel="next" href="powerdns-advisory-2006-02.html" title="6. PowerDNS Security Advisory 2006-02: Zero second CNAME TTLs can make PowerDNS exhaust allocated stack space, and crash" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="security-policy.html">Prev</a> </td><th width="60%" align="center">Chapter 1. The PowerDNS dynamic nameserver</th><td width="20%" align="right"> <a accesskey="n" href="powerdns-advisory-2006-02.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="powerdns-advisory-2006-01"></a>5. PowerDNS Security Advisory 2006-01: Malformed TCP queries can lead to a buffer overflow which might be exploitable</h2></div></div></div><p>
+	</p><div class="table"><a id="id402956"></a><p class="title"><b>Table 1.1. PowerDNS Security Advisory</b></p><div class="table-contents"><table summary="PowerDNS Security Advisory" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>
+		  CVE
+		</td><td>
+		  CVE-2006-4251
+		</td></tr><tr><td>
+		  Date
+		</td><td>
+		  13th of November 2006
+		</td></tr><tr><td>
+		  Affects
+		</td><td>
+		  PowerDNS Recursor versions 3.1.3 and earlier, on all operating systems.
+		</td></tr><tr><td>
+		  Not affected
+		</td><td>
+		  No versions of the PowerDNS Authoritative Server ('pdns_server') are affected.
+		</td></tr><tr><td>
+		  Severity 
+		</td><td>
+		  Critical
+		</td></tr><tr><td>
+		  Impact
+		</td><td>
+		  Potential remote system compromise. 
+		</td></tr><tr><td>
+		  Exploit
+		</td><td>
+		  As far as we know, no exploit is available as of 11th of November 2006.
+		</td></tr><tr><td>
+		  Solution
+		</td><td>
+		  Upgrade to PowerDNS Recursor 3.1.4, or apply the patches referred below and recompile
+		</td></tr><tr><td>
+		  Workaround
+		</td><td>
+		  Disable TCP access to the Recursor. This will have slight operational impact, but it is likely that this will not lead
+		  to meaningful degradation of service. Disabling access is best performed at packet level, either by configuring a firewall, or 
+		  instructing the host operating system to drop TCP connections to port 53.
+		  Additionally, exposure can be limited by configuring the <span class="command"><strong>allow-from</strong></span> setting so only trusted users
+		  can query your nameserver.
+		</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	PowerDNS Recursor 3.1.3 and previous miscalculate the length of incoming TCP DNS queries, and will attempt to read up to 4 gigabytes of query
+	into a 65535 byte buffer.
+      </p><p>
+	We have not verified if this problem might actually lead to a system compromise, but are acting on the assumption that it might.
+      </p><p>
+	For distributors, a minimal patch is available on <a class="ulink" href="http://wiki.powerdns.com/cgi-bin/trac.fcgi/changeset/915" target="_top">the PowerDNS wiki</a>.
+	Additionally, those shipping very old versions of the PowerDNS Recursor might benefit from this <a class="ulink" href="http://ds9a.nl/tmp/cve-2006-4251.patch" target="_top">
+	  patch</a>.
+      </p><p>
+        The impact of these and other security problems can be lessened by considering the advice in <a class="xref" href="security.html" title="Chapter 7. Security settings &amp; considerations">Chapter 7, <i>Security settings &amp; considerations</i></a>.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="security-policy.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdns.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="powerdns-advisory-2006-02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">4. Security </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 6. PowerDNS Security Advisory 2006-02: Zero second CNAME TTLs can make PowerDNS exhaust allocated stack space, and crash</td></tr></table></div></body></html>

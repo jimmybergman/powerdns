@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>8. DB2 backend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="gsqlite.html" title="7. Generic SQLite backend (2 and 3)" /><link rel="next" href="bindbackend.html" title="9. Bind zone file backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">8. DB2 backend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="gsqlite.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="bindbackend.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="8. DB2 backend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="db2"></a>8. DB2 backend</h2></div></div></div><p>
+	</p><div class="table"><a id="id419186"></a><p class="title"><b>Table A.8. DB2 backend capabilities</b></p><div class="table-contents"><table summary="DB2 backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>No</td></tr><tr><td>Slave</td><td>No</td></tr><tr><td>Superslave</td><td>No</td></tr><tr><td>Autoserial</td><td>Yes</td></tr><tr><td>DNSSEC</td><td>No</td></tr><tr><td>Module name</td><td>db2</td></tr><tr><td>Launch name</td><td>db2</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	PowerDNS is currently ascertaining if this backend can be distributed in binary form without violating IBM DB2 licensing. 
+      </p><p>
+	The DB2 backend executes the following queries:
+	</p><div class="variablelist"><dl><dt><span class="term">Forward Query</span></dt><dd><p>
+		select Content, TimeToLive, Priority, Type, ZoneId, 0 as ChangeDate, Name from Records where Name = ? and type = ?
+	      </p></dd><dt><span class="term">Forward By Zone Query</span></dt><dd><p>
+		select Content, TimeToLive, Priority, Type, ZoneId, 0 as ChangeDate, Name from Records where Name = ? and Type = ? and ZoneId = ?
+	      </p></dd><dt><span class="term">Forward Any Query</span></dt><dd><p>
+		select Content, TimeToLive, Priority, Type, ZoneId, 0 as ChangeDate, Name from Records where Name = ?
+	      </p></dd><dt><span class="term">List Query</span></dt><dd><p>
+		select Content, TimeToLive, Priority, Type, ZoneId, 0 as ChangeDate, Name from Records where ZoneId = ?
+	      </p></dd></dl></div><p>
+      </p><p>
+	Configuration settings:
+	</p><div class="variablelist"><dl><dt><span class="term">db2-server</span></dt><dd><p>
+		Server name to connect to. Defaults to 'powerdns'. Make sure that your nameserver is not needed to resolve an IP address needed to connect as
+		this might lead to a chicken/egg situation. 
+	      </p></dd><dt><span class="term">db2-user</span></dt><dd><p>
+		Username to connect as. Defaults to 'powerdns'.
+	      </p></dd><dt><span class="term">db2-password</span></dt><dd><p>
+		Password to connect with. Defaults to 'powerdns'.
+	      </p></dd></dl></div><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="gsqlite.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="bindbackend.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">7. Generic SQLite backend (2 and 3) </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 9. Bind zone file backend</td></tr></table></div></body></html>

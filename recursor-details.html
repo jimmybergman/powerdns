@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>5. Details</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="built-in-recursor.html" title="Chapter 16. PowerDNS Recursor: a high performance resolving nameserver" /><link rel="prev" href="recursor-performance.html" title="4. PowerDNS Recursor performance" /><link rel="next" href="recursor-stats.html" title="6. Statistics" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">5. Details</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="recursor-performance.html">Prev</a> </td><th width="60%" align="center">Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</th><td width="20%" align="right"> <a accesskey="n" href="recursor-stats.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="5. Details"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="recursor-details"></a>5. Details</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="recursor-details.html#anti-spoofing">5.1. Anti-spoofing</a></span></dt><dt><span class="sect2"><a href="recursor-details.html#id409893">5.2. Throttling</a></span></dt></dl></div><div class="sect2" title="5.1. Anti-spoofing"><div class="titlepage"><div><div><h3 class="title"><a id="anti-spoofing"></a>5.1. Anti-spoofing</h3></div></div></div><p>
+	  The PowerDNS recursor 3.0 uses a fresh UDP source port for each outgoing query, making spoofing around 64000 times harder. This 
+	  raises the bar from 'easily doable given some time' to 'very hard'. Under some circimstances, 'some time' has been measured at 2 seconds. 
+	  This technique was first used by <code class="filename">dnscache</code> by Dan J. Bernstein.
+	</p><p>
+	  In addition, PowerDNS detects when it is being sent too many unexpected answers, and mistrusts a proper answer if found within
+	  a clutch of unexpected ones.
+	</p><p>
+	  This behaviour can be tuned using the <span class="command"><strong>spoof-nearmiss-max</strong></span>.
+	</p></div><div class="sect2" title="5.2. Throttling"><div class="titlepage"><div><div><h3 class="title"><a id="id409893"></a>5.2. Throttling</h3></div></div></div><p>
+	  PowerDNS implements a very simple but effective nameserver. Care has been taken not to overload remote servers in case
+	  of overly active clients.
+	</p><p>
+	  This is implemented using the 'throttle'. This accounts all recent traffic and prevents queries that have been sent out
+	  recently from going out again.
+	</p><p>
+	  There are three levels of throttling.
+	  </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+		If a remote server indicates that it is lame for a zone, the exact question won't
+		be repeated in the next 60 seconds.
+	      </p></li><li class="listitem"><p>
+		After 4 ServFail responses in 60 seconds, the query gets throttled too.
+	      </p></li><li class="listitem"><p>
+		5 timeouts in 20 seconds also lead to query suppression.
+	      </p></li></ul></div><p>
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="recursor-performance.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="built-in-recursor.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="recursor-stats.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">4. PowerDNS Recursor performance </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 6. Statistics</td></tr></table></div></body></html>

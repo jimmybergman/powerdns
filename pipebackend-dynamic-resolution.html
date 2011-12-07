@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 5. Dynamic resolution using the PipeBackend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="configuring-db-connection.html" title="Chapter 4. Basic setup: configuring database connectivity" /><link rel="next" href="monitoring.html" title="Chapter 6. Logging &amp; Monitoring Authoritative Server performance" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 5. Dynamic resolution using the PipeBackend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="configuring-db-connection.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="monitoring.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 5. Dynamic resolution using the PipeBackend"><div class="titlepage"><div><div><h2 class="title"><a id="pipebackend-dynamic-resolution"></a>Chapter 5. Dynamic resolution using the PipeBackend</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="pipebackend-dynamic-resolution.html#pipe-and-bind">1. Deploying the PipeBackend with the BindBackend</a></span></dt></dl></div><p>
+      Also included in the PDNS distribution is the PipeBackend. The PipeBackend is primarily meant for
+      allowing rapid development of new backends without tight integration with PowerDNS. It allows
+      end-users to write PDNS backends in any language. A perl sample is provided.
+
+      The PipeBackend is also very well suited for dynamic resolution of queries. Example applications include
+      DNS based loadbalancing, geo-direction, DNS based failover with low TTLs.
+    </p><p>
+      The Pipe Backend also has a separate chapter in the backends appendix, see <a class="xref" href="backends-detail.html#pipebackend" title="1. PipeBackend">Section 1, “PipeBackend”</a>.
+    </p><p>
+      </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+	  The Pipe Backend currently does not function under FreeBSD 4.x and 5.x, probably due to unfavorable interactions between
+	  its threading implementation and the fork system call.
+	</p><p>
+	  Interestingly, the Linux PowerDNS binary running under the Linuxulator on FreeBSD does work.
+	</p></td></tr></table></div><p>
+    </p><div class="sect1" title="1. Deploying the PipeBackend with the BindBackend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="pipe-and-bind"></a>1. Deploying the PipeBackend with the BindBackend</h2></div></div></div><p>
+        Included with the PDNS distribution is the example.pl backend which has knowledge of the example.com zone, just like
+        the BindBackend. To install both, add the following to your <code class="filename">pdns.conf</code>:
+        </p><pre class="screen">
+          launch=pipe,bind
+          bind-example-zones
+          pipe-command=location/of/backend.pl
+        </pre><p>
+        Please adjust the <span class="command"><strong>pipe-command</strong></span> statement to the location of the unpacked PDNS distribution. If your backend is slow,
+	raise <span class="command"><strong>pipe-timeout</strong></span> from its default of 2000ms.
+
+        Now launch PDNS in monitor mode, and perform some queries. Note the difference with the earlier experiment where only the 
+        BindBackend was loaded. The PipeBackend is launched first and thus gets queried first.
+
+        The sample backend.pl script knows about:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	      webserver.example.com A records pointing to 1.2.3.4, 1.2.3.5, 1.2.3.6
+	    </p></li><li class="listitem"><p>
+	      www.example.com CNAME pointing to webserver.example.com
+	    </p></li><li class="listitem"><p>
+	      MBOXFW (mailbox forward) records pointing to powerdns@example.com.
+              See the smtpredir documentation for information about MBOXFW.
+	    </p></li></ul></div><p>
+
+        For more information about how to write exciting backends with the PipeBackend, see Appendix A.
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="configuring-db-connection.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="monitoring.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 4. Basic setup: configuring database connectivity </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 6. Logging &amp; Monitoring Authoritative Server performance</td></tr></table></div></body></html>

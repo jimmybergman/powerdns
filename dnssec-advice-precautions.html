@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>6. DNSSEC advice &amp; precautions</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdnssec-auth.html" title="Chapter 12. Serving authoritative DNSSEC data" /><link rel="prev" href="pdnssec.html" title="5. 'pdnssec' for PowerDNSSEC command &amp; control" /><link rel="next" href="dnssec-operational-doctrine.html" title="7. Operational instructions" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">6. DNSSEC advice &amp; precautions</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="pdnssec.html">Prev</a> </td><th width="60%" align="center">Chapter 12. Serving authoritative DNSSEC data</th><td width="20%" align="right"> <a accesskey="n" href="dnssec-operational-doctrine.html">Next</a></td></tr></table><hr /></div><div class="section" title="6. DNSSEC advice &amp; precautions"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="dnssec-advice-precautions"></a>6. DNSSEC advice &amp; precautions</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="dnssec-advice-precautions.html#dnssec-packet-size-tcp">6.1. Packet sizes, fragments, TCP/IP service</a></span></dt></dl></div><p>
+    DNSSEC is a major change in the way DNS works. Furthermore, there is a bewildering array of settings 
+    that can be configured. 
+  </p><p>
+    It is well possible to configure DNSSEC in such a way that your domain will not operate reliably, or even, at all.
+  </p><p>
+    We advise operators to stick to the keying defaults of 'pdnssec secure-zone': RSASHA256 (algorithm 8),
+    1 Key Signing Key of 2048 bits, 1 active Zone Signing Key of 1024 bits, 1 passive Zone Signing Key of 1024 bits.
+  </p><p>
+    While the 'GOST' and 'ECDSA' algorithms are better choices in theory, not many DNSSEC resolvers can validate answers
+    signed with such keys. Much the same goes for RSASHA512, except that it does not offer better performance either.
+  </p><p>
+    </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>GOST may be more widely available in Russia, because it might be mandatory to implement this regional standard there.</p></td></tr></table></div><p>
+  </p><p>
+    It is possible to operate a zone with different keying algorithms simultaneously, but it has also been observed that this is not reliable.
+  </p><div class="section" title="6.1. Packet sizes, fragments, TCP/IP service"><div class="titlepage"><div><div><h3 class="title"><a id="dnssec-packet-size-tcp"></a>6.1. Packet sizes, fragments, TCP/IP service</h3></div></div></div><p>
+    DNSSEC answers contain (bulky) keying material and signatures, and are therefore a lot larger than regular DNS answers.
+    Normal DNS responses almost always fit in the 'magical' 512 byte limit previously imposed on DNS.
+  </p><p>
+    In order to support DNSSEC, operators must make sure that their network allows for:
+    </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>&gt;512 byte UDP packets on port 53</p></li><li class="listitem"><p>Fragmented UDP packets</p></li><li class="listitem"><p>ICMP packets related to fragmentation</p></li><li class="listitem"><p>TCP queries on port 53</p></li><li class="listitem"><p>EDNS0 queries/responses (filtered by some firewalls)</p></li></ul></div><p>
+  </p><p>
+    If any of the conditions outlined above is not met, DNSSEC service will suffer or be completely unavailable.
+  </p><p>
+    In addition, the larger your DNS answers, the more critical the above becomes. It is therefore advised not to provision too many keys,
+    or keys that are unneccessarily large.
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pdnssec.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdnssec-auth.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="dnssec-operational-doctrine.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">5. 'pdnssec' for PowerDNSSEC command &amp; control </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 7. Operational instructions</td></tr></table></div></body></html>

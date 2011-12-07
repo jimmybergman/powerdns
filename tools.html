@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 23. Other tools included with PowerDNS</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="powerdns-company-faq.html" title="4. About PowerDNS.COM BV, 'the company'" /><link rel="next" href="analysis.html" title="Chapter 24. Tools to analyse DNS traffic" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 23. Other tools included with PowerDNS</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="powerdns-company-faq.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="analysis.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 23. Other tools included with PowerDNS"><div class="titlepage"><div><div><h2 class="title"><a id="tools"></a>Chapter 23. Other tools included with PowerDNS</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="tools.html#nproxy">1. Notification proxy (nproxy)</a></span></dt></dl></div><p>
+      PowerDNS comes with several tools that can be used to do various DNS related things.
+    </p><div class="sect1" title="1. Notification proxy (nproxy)"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="nproxy"></a>1. Notification proxy (nproxy)</h2></div></div></div><p>
+	Available in PowerDNS 2.9.22 and later.
+      </p><p>
+	For additional security, operators may prefer to have a 'hidden slave' that sits behind a strong firewall. This slave pulls
+	in zones from the outside world, and stores them in a database. This database is then used by publicly accessible nameservers
+	to publish zone data.
+      </p><p>
+	For proper slave operation, master nameservers send out notifications to inform slaves of updates. This is not normally a problem,
+	but when operating with a hidden slave behind a firewall, notification packets can't reach the slave.
+      </p><p>
+	For this purpose, the PowerDNS also supplies a notification proxy. It sits outside the firewall, and accepts notifications from
+	remote master servers. It interprets and validates these packets, and then sends on a new notification to the hidden slave.
+      </p><p>
+	The hidden slave then promptly retrieves an updated zone from the master.
+      </p><p>
+	The notification proxy, called <span class="command"><strong>nproxy</strong></span>, can be configured using the following settings:
+      </p><p>
+      </p><div class="variablelist"><dl><dt><span class="term">chroot</span></dt><dd><p>
+		Change root to this directory for additional security.
+	    </p></dd><dt><span class="term">daemon</span></dt><dd><p>
+		Run in the background. Defaults to true, can be turned off using '--daemon=no'.
+	    </p></dd><dt><span class="term">listen-address</span></dt><dd><p>
+		Public addresses (IPv4 and IPv6) to listen on for incoming notification packets. Defaults to "all addresses", but it is highly recommended to specify
+		addresses here. 
+	    </p></dd><dt><span class="term">origin-address</span></dt><dd><p>
+		Can be used to pin the address the nproxy uses to communicate with the hidden slave. Highly recommended. Corresponds to the PowerDNS settting 
+		<span class="command"><strong>trusted-notification-proxy</strong></span>.
+	    </p></dd><dt><span class="term">powerdns-address</span></dt><dd><p>
+		IP address (IPv4 or IPv6) of the hidden slave, to which notifications should be relayed. This setting is mandatory, and has no default.
+	    </p></dd><dt><span class="term">setuid and setgid</span></dt><dd><p>
+		Change to these numerical user-id and/or group-id, dropping root privileges, for additional security.
+	    </p></dd></dl></div><p>
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="powerdns-company-faq.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="analysis.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">4. About PowerDNS.COM BV, 'the company' </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 24. Tools to analyse DNS traffic</td></tr></table></div></body></html>

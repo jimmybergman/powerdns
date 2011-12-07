@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>4. Records, Keys, signatures, hashes within PowerDNSSEC in online signing mode</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdnssec-auth.html" title="Chapter 12. Serving authoritative DNSSEC data" /><link rel="prev" href="dnssec-migration.html" title="3. Migration" /><link rel="next" href="pdnssec.html" title="5. 'pdnssec' for PowerDNSSEC command &amp; control" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">4. Records, Keys, signatures, hashes within PowerDNSSEC in online signing mode</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="dnssec-migration.html">Prev</a> </td><th width="60%" align="center">Chapter 12. Serving authoritative DNSSEC data</th><td width="20%" align="right"> <a accesskey="n" href="pdnssec.html">Next</a></td></tr></table><hr /></div><div class="section" title="4. Records, Keys, signatures, hashes within PowerDNSSEC in online signing mode"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="powerdnssec"></a>4. Records, Keys, signatures, hashes within PowerDNSSEC in online signing mode</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="powerdnssec.html#nsecX">4.1. (Hashed) Denial of Existence</a></span></dt><dt><span class="section"><a href="powerdnssec.html#rrsig">4.2. Signatures</a></span></dt></dl></div><p>
+    Within PowerDNSSEC live signing, keys are stored separately from the zone records. Zone data are only 
+    combined with signatures and keys when requests come in over the internet.
+  </p><p>
+    Each zone can have a number of keys associated with it, with varying key lenghts. Typically 1 or at most 2 of these
+    keys are employed as actual Zone Signing Keys (ZSKs). During normal operations, this means that only 1 ZSK is 'active', and
+    the other is passive. 
+  </p><p>
+    Should it be desired to 'roll over' to a new key, both keys can temporarily be active (and used for signing), and after a while the
+    old key can be inactivated. Subsequently it can be removed.
+  </p><p>
+    As elucidated above, there are several ways in which DNSSEC can deny the existence of a record, and this setting too is stored
+    away from zone records, and lives with the DNSSEC keying material.
+  </p><p>
+    In order to facilitate interoperability with existing technologies, PowerDNSSEC keys can be imported and exported in industry standard formats.
+  </p><p>
+    Keys and hashes are configured using the 'pdnssec' tool, which is described next.
+  </p><div class="section" title="4.1. (Hashed) Denial of Existence"><div class="titlepage"><div><div><h3 class="title"><a id="nsecX"></a>4.1. (Hashed) Denial of Existence</h3></div></div></div><p>
+    PowerDNS supports unhashed secure denial of existence using NSEC records. These are generated
+    with the help of the (database) backend, which needs to be able to supply the 'previous' and 'next' records
+    in canonical ordering.
+  </p><p>
+    The Generic SQL Backends have fields that allow them to supply these relative record names.
+  </p><p>
+    In addition, hashed secure denial of existence is supported using NSEC3 records, in two modes, one
+    with help from the database, the other with the help of some additional calculations.
+  </p><p>
+    NSEC3 in 'broad' or 'inclusive' mode works with the aid of the backend, where the backend should
+    be able to supply the previous and next domain names in hashed order.
+  </p><p>
+    NSEC3 in 'narrow' mode uses additional hashing calculations to provide hashed secure denial of existence 'on the fly',
+    without further involving the database.
+  </p></div><div class="section" title="4.2. Signatures"><div class="titlepage"><div><div><h3 class="title"><a id="rrsig"></a>4.2. Signatures</h3></div></div></div><p>
+    In PowerDNS live signing mode, signatures, as served through RRSIG records, are calculated on the fly, and heavily cached. All CPU cores 
+    are used for the calculation.
+  </p><p>
+    RRSIGs have a validity period, in PowerDNS by default this period starts at most a week in the past, and continues
+    at least a week into the future.
+  </p><p>
+    Precisely speaking, the time period used is always from the start of the previous Thursday until the Thursday two weeks later.
+    This two-week interval jumps with one-week increments every Thursday.
+  </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>Why Thursday? POSIX-based operating systems count the time since GMT midnight January 1st of 1970,
+  which was a Thursday. PowerDNS inception/expiration times are generated based on an integral number of weeks having passed
+  since the start of the 'epoch'.
+  </p></td></tr></table></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="dnssec-migration.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdnssec-auth.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="pdnssec.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Migration </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 5. 'pdnssec' for PowerDNSSEC command &amp; control</td></tr></table></div></body></html>

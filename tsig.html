@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 13. TSIG: shared secret authorization and authentication</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="dnssec-thanks-to.html" title="11. Thanks to, acknowledgements" /><link rel="next" href="tsig-outbound-notify-axfr.html" title="2. Provisioning signed notification and AXFR requests" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 13. TSIG: shared secret authorization and authentication</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="dnssec-thanks-to.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="tsig-outbound-notify-axfr.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 13. TSIG: shared secret authorization and authentication"><div class="titlepage"><div><div><h2 class="title"><a id="tsig"></a>Chapter 13. TSIG: shared secret authorization and authentication</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="tsig.html#tsig-outbound-axfr">1. Provisioning outbound AXFR access</a></span></dt><dt><span class="section"><a href="tsig-outbound-notify-axfr.html">2. Provisioning signed notification and AXFR requests</a></span></dt></dl></div><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>Available since PowerDNS Authoritative Server 3.0!</p></td></tr></table></div><p>
+    TSIG, as defined in RFC 2845, is a method for signing DNS messages using shared secrets. 
+    Each TSIG shared secret has a name, and PowerDNS can be told to allow zonetransfer of a domain
+    if the request is signed with an authorized name.
+  </p><p>
+    In PowerDNS, TSIG shared secrets are stored by the various backends. In case of the popular 
+    Generic backends, they can be found in the 'tsigkeys' table. The name can be chosen freely, but
+    the algorithm name will typically be 'hmac-md5'. The content is a Base64-encoded secret.
+  </p><p>
+  </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>For the Generic backends, make sure to use the DNSSEC enabled schema and to turn on the relevant '-dnssec' flag (for example, gmyql-dnssec)!</p></td></tr></table></div><p>
+  </p><div class="section" title="1. Provisioning outbound AXFR access"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="tsig-outbound-axfr"></a>1. Provisioning outbound AXFR access</h2></div></div></div><p>
+    To actually provision a named secret permission to AXFR a zone, set a metadata item in the 'domainmetadata' table
+    called 'TSIG-ALLOW-AXFR' with the key name in the content field. 
+  </p><p>
+    As an example:
+</p><pre class="programlisting">
+sql&gt; insert into tsigkeys (name, algorithm, secret) values ('test', 'hmac-md5', 'kp4/24gyYsEzbuTVJRUMoqGFmN3LYgVDzJ/3oRSP7ys=');
+sql&gt; select id from domains where name='powerdnssec.org';
+5
+sql&gt; insert into domainmetadata (domain_id, kind, content) values (5, 'TSIG-ALLOW-AXFR', 'test');
+
+$ dig -t axfr powerdnssec.org @127.0.0.1 -y 'test:kp4/24gyYsEzbuTVJRUMoqGFmN3LYgVDzJ/3oRSP7ys='
+</pre><p>
+  </p><p>
+    To ease interoperability, the equivalent configuration above in BIND would look like this:
+</p><pre class="programlisting">
+key test. {
+        algorithm hmac-md5;
+        secret "kp4/24gyYsEzbuTVJRUMoqGFmN3LYgVDzJ/3oRSP7ys=";
+};
+
+zone "powerdnssec.org" {
+	type master;
+	file "powerdnssec.org";
+	allow-transfer {  key test.; };
+};
+</pre><p>
+  </p><p>
+    A packet authorized and authenticated by a TSIG signature will gain access to a zone even 
+    if the remote IP address is not otherwise allowed to AXFR a zone.
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="dnssec-thanks-to.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="tsig-outbound-notify-axfr.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">11. Thanks to, acknowledgements </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Provisioning signed notification and AXFR requests</td></tr></table></div></body></html>

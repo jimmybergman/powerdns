@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>7. Generic SQLite backend (2 and 3)</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="oracle.html" title="6. Oracle backend" /><link rel="next" href="db2.html" title="8. DB2 backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">7. Generic SQLite backend (2 and 3)</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="oracle.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="db2.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="7. Generic SQLite backend (2 and 3)"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="gsqlite"></a>7. Generic SQLite backend (2 and 3)</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="gsqlite.html#id419035">7.1. Compiling the SQLite backend</a></span></dt><dt><span class="sect2"><a href="gsqlite.html#id419074">7.2. Setting up the database</a></span></dt><dt><span class="sect2"><a href="gsqlite.html#id419150">7.3. Using the SQLite backend</a></span></dt></dl></div><p>
+      	</p><div class="table"><a id="id418935"></a><p class="title"><b>Table A.7. Generic SQLite backend capabilities</b></p><div class="table-contents"><table summary="Generic SQLite backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>Yes</td></tr><tr><td>Slave</td><td>Yes</td></tr><tr><td>Superslave</td><td>Yes</td></tr><tr><td>DNSSEC</td><td>gsqlite3 only (set gsqlite3-dnssec)</td></tr><tr><td>Module name</td><td>gsqlite and gsqlite3</td></tr><tr><td>Launch name</td><td>gsqlite and gsqlite3</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>When importing large amounts of data, be sure to run 'analyze;' afterwards as SQLite3
+	has a tendency to use sub-optimal indexes otherwise.</p></td></tr></table></div><p>
+        This backend retrieves all data from a SQLite database, which is an RDBMS that's embedded into the application itself, so you won't need to be running a seperate server process.
+        It also reduces overhead, and simplifies installation.
+        At <a class="ulink" href="http://www.sqlite.org" target="_top">http://www.sqlite.org</a> you can find more information about SQLite.
+      </p><p>
+        As this is a generic backend, built on top of the gSql framework, you can specify all queries as documented in <a class="link" href="generic-mypgsql-backends.html" title="5. Generic MySQL and PgSQL backends">Generic MySQL and PgSQL backends</a>.
+      </p><p>
+	SQLite exists in two incompatible versions, numbered 2 and 3, and from 2.9.21 onwards, PowerDNS supports both. It is recommended to go with version 3 
+	as it is newer, has better performance and is actively maintained. To use version 3, choose 'launch=gsqlite3'.
+      </p><div class="sect2" title="7.1. Compiling the SQLite backend"><div class="titlepage"><div><div><h3 class="title"><a id="id419035"></a>7.1. Compiling the SQLite backend</h3></div></div></div><p>
+          Before you can begin compiling PowerDNS with the SQLite backend you need to have the SQLite utility and library installed on your system.
+          You can download these from <a class="ulink" href="http://www.sqlite.org/download.html" target="_top">http://www.sqlite.org/download.html</a>, or you can use packages (if your distribution provides those).
+        </p><p>
+          When you've installed the library you can use: <span class="command"><strong>./configure --with-modules="gsqlite"</strong></span> or
+	  <span class="command"><strong>./configure --with-modules="gsqlite3"</strong></span> to configure PowerDNS to use the SQLite backend.
+          Compilation can then proceed as usual. 
+        </p><p>
+	  SQLite is included in most PowerDNS binary releases.
+	</p></div><div class="sect2" title="7.2. Setting up the database"><div class="titlepage"><div><div><h3 class="title"><a id="id419074"></a>7.2. Setting up the database</h3></div></div></div><p>
+	        Before you can use this backend you first have to set it up and fill it with data.	        
+	        The default setup conforms to the following schema:
+	        
+	        </p><pre class="programlisting">
+            create table domains (
+              id                INTEGER PRIMARY KEY,
+              name              VARCHAR(255) NOT NULL COLLATE NOCASE,
+              master            VARCHAR(128) DEFAULT NULL,
+              last_check        INTEGER DEFAULT NULL,
+              type              VARCHAR(6) NOT NULL,
+              notified_serial   INTEGER DEFAULT NULL, 
+              account           VARCHAR(40) DEFAULT NULL
+            );
+
+            CREATE UNIQUE INDEX name_index ON domains(name);
+
+            CREATE TABLE records (
+              id              INTEGER PRIMARY KEY,
+              domain_id       INTEGER DEFAULT NULL,
+              name            VARCHAR(255) DEFAULT NULL, 
+              type            VARCHAR(10) DEFAULT NULL,
+              content         VARCHAR(255) DEFAULT NULL,
+              ttl             INTEGER DEFAULT NULL,
+              prio            INTEGER DEFAULT NULL,
+              change_date     INTEGER DEFAULT NULL
+            );
+              
+            CREATE INDEX rec_name_index ON records(name);
+            CREATE INDEX nametype_index ON records(name,type);
+            CREATE INDEX domain_id ON records(domain_id);
+
+            create table supermasters (
+              ip          VARCHAR(25) NOT NULL, 
+              nameserver  VARCHAR(255) NOT NULL COLLATE NOCASE, 
+              account     VARCHAR(40) DEFAULT NULL
+            );
+	        </pre><p>
+	      </p><p>
+	        This schema contains all elements needed for master, slave and superslave operation.	  
+	      </p><p>
+		To support DNSSEC, or to migrate to DNSSEC, the following statements must be issued:
+	      </p><p>
+	      </p><pre class="programlisting">
+alter table records add ordername      VARCHAR(255);
+alter table records add auth bool;
+create index orderindex on records(ordername);
+
+create table domainmetadata (
+ id              INTEGER PRIMARY KEY,
+ domain_id       INT NOT NULL,
+ kind            VARCHAR(16) COLLATE NOCASE,
+ content        TEXT
+);
+
+create table cryptokeys (
+ id             INTEGER PRIMARY KEY,
+ domain_id      INT DEFAULT NULL,
+ flags          INT NOT NULL,
+ active         BOOL,
+ content        TEXT
+);        
+
+create table tsigkeys (
+ id             INTEGER PRIMARY KEY,
+ name           VARCHAR(255) COLLATE NOCASE,
+ algorithm      VARCHAR(255) COLLATE NOCASE,
+ secret         VARCHAR(255)
+);
+
+create unique index namealgoindex on tsigkeys(name, algorithm);
+         
+	      </pre><p>
+		For full migration notes, please see <a class="xref" href="dnssec-migration.html" title="3. Migration">Section 3, “Migration”</a>.
+	      </p><p>
+	        After you have created the database you probably want to fill it with data. 
+	        If you have a BIND zonefile it's as easy as: <span class="command"><strong>zone2sql --zone=myzonefile --gmysql | sqlite powerdns.sqlite</strong></span>, but
+	        you can also use AXFR (or insert data manually).
+	      </p><p>
+	  To communicate with a SQLite database, use either the 'sqlite' or 'sqlite3' program, and feed it SQL.
+	</p></div><div class="sect2" title="7.3. Using the SQLite backend"><div class="titlepage"><div><div><h3 class="title"><a id="id419150"></a>7.3. Using the SQLite backend</h3></div></div></div><p>
+          The last thing you need to do is telling PowerDNS to use the SQLite backend. 
+        </p><p>
+          </p><pre class="programlisting">
+            # in pdns.conf
+            launch=gsqlite # or gsqlite3
+            gsqlite-database=&lt;path to your SQLite database&gt;   # or gsqlite3-database
+          </pre><p>
+        </p><p>
+          Then you can start PowerDNS and it should notify you that a connection to the database was made.
+        </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="oracle.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="db2.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">6. Oracle backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 8. DB2 backend</td></tr></table></div></body></html>

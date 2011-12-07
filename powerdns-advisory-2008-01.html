@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdns.html" title="Chapter 1. The PowerDNS dynamic nameserver" /><link rel="prev" href="powerdns-advisory-2006-02.html" title="6. PowerDNS Security Advisory 2006-02: Zero second CNAME TTLs can make PowerDNS exhaust allocated stack space, and crash" /><link rel="next" href="powerdns-advisory-2008-02.html" title="8. PowerDNS Security Advisory 2008-02: By not responding to certain queries, domains become easier to spoof" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="powerdns-advisory-2006-02.html">Prev</a> </td><th width="60%" align="center">Chapter 1. The PowerDNS dynamic nameserver</th><td width="20%" align="right"> <a accesskey="n" href="powerdns-advisory-2008-02.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="powerdns-advisory-2008-01"></a>7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor</h2></div></div></div><p>
+	</p><div class="table"><a id="id403265"></a><p class="title"><b>Table 1.3. PowerDNS Security Advisory</b></p><div class="table-contents"><table summary="PowerDNS Security Advisory" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>
+		  CVE
+		</td><td>
+		  Not yet assigned
+		</td></tr><tr><td>
+		  Date
+		</td><td>
+		  31st of March 2008
+		</td></tr><tr><td>
+		  Affects
+		</td><td>
+		  PowerDNS Recursor versions 3.1.4 and earlier, on most operating systems
+		</td></tr><tr><td>
+		  Not affected
+		</td><td>
+		  No versions of the PowerDNS Authoritative Server ('pdns_server') are affected.
+		</td></tr><tr><td>
+		  Severity 
+		</td><td>
+		  Moderate
+		</td></tr><tr><td>
+		  Impact
+		</td><td>
+		  Data manipulation; client redirection
+		</td></tr><tr><td>
+		  Exploit
+		</td><td>
+		  This problem can be triggered by sending queries for specifically configured domains, sending
+		  spoofed answer packets immediately afterwards.
+		</td></tr><tr><td>
+		  Solution
+		</td><td>
+		  Upgrade to PowerDNS Recursor 3.1.5, or apply changesets <a class="ulink" href="http://wiki.powerdns.com/projects/trac/changeset/1159" target="_top">1159</a>, <a class="ulink" href="http://wiki.powerdns.com/projects/trac/changeset/1160" target="_top">1160</a> and <a class="ulink" href="http://wiki.powerdns.com/projects/trac/changeset/1164" target="_top">1164</a>.
+		</td></tr><tr><td>
+		  Workaround
+		</td><td>
+		  None known. Exposure can be limited by configuring the <span class="command"><strong>allow-from</strong></span> setting so only trusted users
+		  can query your nameserver.
+		</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	We would like to thank Amit Klein of Trusteer for bringing a serious           
+	vulnerability to our attention which would enable a smart attacker to          
+	'spoof' previous versions of the PowerDNS Recursor into accepting possibly     
+	mallicious data.     
+      </p><p>
+	Details can be found on <a class="ulink" href="http://www.trusteer.com/docs/powerdnsrecursor.html" target="_top">
+	  this Trusteer page</a>.
+      </p><p>
+	This security problem was announced in <a class="ulink" href="http://mailman.powerdns.com/pipermail/pdns-users/2008-March/005279.html" target="_top">this email message</a>.
+      </p><p>
+	It is recommended that all users of the PowerDNS Recursor upgrade to 3.1.5
+	as soon as practicable, while we simultaneously note that busy servers are
+	less susceptible to the attack, but not immune.
+      </p><p>
+	The vulnerability is present on all operating systems where the behaviour      
+	of the libc random() function can be predicted based on its past output.     
+	This includes at least all known versions of Linux, as well as Microsoft       
+	Windows, and probably FreeBSD and Solaris.
+      </p><p>
+	The magnitude of this vulnerability depends on internal details of the         
+	system random() generator. For Linux, the mathematics of the random            
+	generator are complex, but well understood and Amit Klein has written and      
+	published a proof of concept that can succesfully predict its output after     
+	uninterrupted observation of 40-50 DNS queries.
+      </p><p>
+	Because the observation needs to be uninterrupted, busy PowerDNS Recursor      
+	instances are harder to subvert - other data is highly likely to be            
+	interleaved with traffic generated by an attacker. 
+      </p><p>
+	Nevertheless, operators are urged to update at their earliest convenience.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="powerdns-advisory-2006-02.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdns.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="powerdns-advisory-2008-02.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">6. PowerDNS Security Advisory 2006-02: Zero second CNAME TTLs can make PowerDNS exhaust allocated stack space, and crash </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 8. PowerDNS Security Advisory 2008-02: By not responding to certain queries, domains become easier to spoof</td></tr></table></div></body></html>

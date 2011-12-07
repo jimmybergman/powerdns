@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Random Backend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="mysqlbackend.html" title="2. MySQL backend" /><link rel="next" href="pdnsbackend.html" title="4. MySQL PowerDNS backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Random Backend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="mysqlbackend.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="pdnsbackend.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Random Backend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="randombackend"></a>3. Random Backend</h2></div></div></div><p>
+	</p><div class="table"><a id="id415593"></a><p class="title"><b>Table A.3. Random Backend capabilities</b></p><div class="table-contents"><table summary="Random Backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>No</td></tr><tr><td>Slave</td><td>No</td></tr><tr><td>Superslave</td><td>No</td></tr><tr><td>Autoserial</td><td>No</td></tr><tr><td>Case</td><td>Depends</td></tr><tr><td>DNSSEC</td><td>Yes, no key storage</td></tr><tr><td>Module name</td><td>built in</td></tr><tr><td>Launch name</td><td>random</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	This is a very silly backend which is discussed in <a class="xref" href="backend-writers-guide.html#simple-backends" title="1. Simple read-only native backends">Section 1, “Simple read-only native backends”</a> as a demonstration on
+	how to write a PowerDNS backend.
+      </p><p>
+	This backend knows about only one hostname, and only about its IP address at that. With every query,
+	a new random IP address is generated.
+      </p><p>
+	It only makes sense to load the random backend in combination with a regular backend. This can be done by prepending
+	it to the <span class="command"><strong>launch=</strong></span> instruction, such as <span class="command"><strong>launch=random,gmysql</strong></span>.
+      </p><p>
+	Variables:
+      </p><p>
+	</p><div class="variablelist"><dl><dt><span class="term">random-hostname</span></dt><dd><p>
+		Hostname for which to supply a random IP address.
+	      </p></dd></dl></div><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="mysqlbackend.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="pdnsbackend.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. MySQL backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 4. MySQL PowerDNS backend</td></tr></table></div></body></html>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>4. MySQL PowerDNS backend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="randombackend.html" title="3. Random Backend" /><link rel="next" href="generic-mypgsql-backends.html" title="5. Generic MySQL and PgSQL backends" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">4. MySQL PowerDNS backend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="randombackend.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="generic-mypgsql-backends.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="4. MySQL PowerDNS backend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="pdnsbackend"></a>4. MySQL PowerDNS backend</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="pdnsbackend.html#id415958">4.1. Notes</a></span></dt></dl></div><p>
+	</p><div class="table"><a id="id415737"></a><p class="title"><b>Table A.4. MySQL PowerDNS backend capabilities</b></p><div class="table-contents"><table summary="MySQL PowerDNS backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>No</td></tr><tr><td>Slave</td><td>No</td></tr><tr><td>Superslave</td><td>No</td></tr><tr><td>Autoserial</td><td>Yes</td></tr><tr><td>Case</td><td>Insensitive</td></tr><tr><td>DNSSEC</td><td>No</td></tr><tr><td>Module name</td><td>pdns</td></tr><tr><td>Launch name</td><td>pdns</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	This is the driver that corresponds to the set of XML-RPC tools available from PowerDNS. 
+      </p><p>
+	The schema:
+	</p><pre class="screen">
+CREATE TABLE MailForwards (
+  Id int(10) unsigned NOT NULL auto_increment,
+  ZoneId int(10) unsigned NOT NULL default '0',
+  Name varchar(255) NOT NULL default '',
+  Destination varchar(255) NOT NULL default '',
+  Flags int(11) NOT NULL default '0',
+  ChangeDate timestamp(14) NOT NULL,
+  CreateDate timestamp(14) NOT NULL,
+  Active tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (Id),
+  KEY NameIndex (Name),
+  KEY ZoneIdIndex (ZoneId)
+);
+
+--
+-- Table structure for table 'Mailboxes'
+--
+
+CREATE TABLE Mailboxes (
+  Id int(10) unsigned NOT NULL auto_increment,
+  ZoneId int(10) unsigned NOT NULL default '0',
+  Name varchar(255) NOT NULL default '',
+  Password varchar(255) NOT NULL default '',
+  Quota int(10) unsigned NOT NULL default '0',
+  Flags int(11) NOT NULL default '0',
+  ChangeDate timestamp(14) NOT NULL,
+  CreateDate timestamp(14) NOT NULL,
+  Active tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (Id),
+  UNIQUE KEY Name (Name),
+  KEY ZoneIdIndex (ZoneId),
+  KEY NameIndex (Name)
+);
+
+--
+-- Table structure for table 'Records'
+--
+
+CREATE TABLE Records (
+  Id int(10) unsigned NOT NULL auto_increment,
+  ZoneId int(10) unsigned NOT NULL default '0',
+  Name varchar(255) NOT NULL default '',
+  Type varchar(8) NOT NULL default '',
+  Content varchar(255) NOT NULL default '',
+  TimeToLive int(11) NOT NULL default '60',
+  Priority int(11) NOT NULL default '0',
+  Flags int(11) NOT NULL default '0',
+  ChangeDate timestamp(14) NOT NULL,
+  CreateDate timestamp(14) NOT NULL,
+  Active tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (Id),
+  KEY NameIndex (Name)
+);
+
+--
+-- Table structure for table 'WebForwards'
+--
+
+CREATE TABLE WebForwards (
+  Id int(10) unsigned NOT NULL auto_increment,
+  ZoneId int(10) unsigned NOT NULL default '0',
+  Name varchar(255) NOT NULL default '',
+  Destination varchar(255) NOT NULL default '',
+  Type varchar(7) NOT NULL default 'NORMAL',
+  Title varchar(255) NOT NULL default '',
+  Description varchar(255) NOT NULL default '',
+  Keywords varchar(255) NOT NULL default '',
+  FavIcon varchar(255) NOT NULL default '',
+  Flags int(11) NOT NULL default '0',
+  ChangeDate timestamp(14) NOT NULL,
+  CreateDate timestamp(14) NOT NULL,
+  Active tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (Id),
+  KEY NameIndex (Name),
+  KEY ZoneIdIndex (ZoneId)
+);
+
+--
+-- Table structure for table 'Zones'
+--
+
+CREATE TABLE Zones (
+  Id int(10) unsigned NOT NULL auto_increment,
+  Name varchar(255) NOT NULL default '',
+  Hostmaster varchar(255) NOT NULL default '',
+  Serial int(10) unsigned NOT NULL default '0',
+  AutoSerial tinyint(4) NOT NULL default '0',
+  Flags int(11) NOT NULL default '0',
+  ChangeDate timestamp(14) NOT NULL,
+  CreateDate timestamp(14) NOT NULL,
+  Active tinyint(4) NOT NULL default '0',
+  TimeToLive int(11) NOT NULL default '0',
+  OwnerId varchar(255) NOT NULL default '',
+  Master varchar(255) NOT NULL default '',
+  PRIMARY KEY  (Id),
+  UNIQUE KEY Name (Name),
+  KEY NameIndex (Name)
+);
+
+	</pre><p>
+      </p><p>
+	It takes a number of parameters:
+      </p><p>
+          </p><div class="variablelist"><dl><dt><span class="term">pdns-dbname</span></dt><dd><p>
+                  Database name to connect to
+                </p></dd><dt><span class="term">pdns-host</span></dt><dd><p>
+                  Database host to connect to
+                </p></dd><dt><span class="term">pdns-password</span></dt><dd><p>
+                  Password to connect with
+                </p></dd><dt><span class="term">pdns-socket</span></dt><dd><p>
+                  MySQL socket to use for connecting
+                </p></dd><dt><span class="term">pdns-user</span></dt><dd><p>
+                  MySQL user to connect as
+                </p></dd><dt><span class="term">pdns-soa-refresh</span></dt><dd><p>
+                  Pdns SOA refresh in seconds
+                </p></dd><dt><span class="term">pdns-max-slave-records</span></dt><dd><p>
+                  Maximal records to transfer
+                </p></dd></dl></div><p>
+	</p><div class="sect2" title="4.1. Notes"><div class="titlepage"><div><div><h3 class="title"><a id="id415958"></a>4.1. Notes</h3></div></div></div><p>
+	  It has been observed that InnoDB tables outperform the default MyISAM tables by a large margin. Furthermore, the default 
+	  number of backends (3) should be raised to 10 or 15 for busy servers.
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="randombackend.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="generic-mypgsql-backends.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Random Backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 5. Generic MySQL and PgSQL backends</td></tr></table></div></body></html>

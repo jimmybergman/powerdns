@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. Native Posix Thread Library vs LinuxThreads</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="performance.html" title="Chapter 9. Authoritative Server Performance" /><link rel="prev" href="performance.html" title="Chapter 9. Authoritative Server Performance" /><link rel="next" href="performance-settings.html" title="3. Performance related settings" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. Native Posix Thread Library vs LinuxThreads</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="performance.html">Prev</a> </td><th width="60%" align="center">Chapter 9. Authoritative Server Performance</th><td width="20%" align="right"> <a accesskey="n" href="performance-settings.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. Native Posix Thread Library vs LinuxThreads"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="nptl"></a>2. Native Posix Thread Library vs LinuxThreads</h2></div></div></div><p>
+	To get the best performance under Linux, especially on SMP
+	systems, the use of NPTL is advised. The difference in
+	performance can be over a factor of ten in some circumstances.
+      </p><p>
+	NPTL is the default library on modern Linux distributions, so
+	there is generally not a problem, except if you use a
+	statically compiled version that, for portability reasons,
+	defaults to LinuxThreads. This includes all .deb's and .rpm's
+	provided by us up to and including 2.9.18.
+      </p><p>
+	When running a PowerDNS-provided static binary of 2.9.18 or
+	lower, it may make sense to recompile, or to upgrade to a
+	newer version, if available. When recompiling, be sure to use
+	a supported compiler, like g++ &gt;3.2. You might also consider
+	moving to a distribution supplied version.
+      </p><p>
+	A good indication that your installation might benefit from
+	such an upgrade is to watch the 'cs' count in the output of
+	vmstat 1. If this is very high (&gt; 10000), you are suffering
+	from a LinuxThreads performance problem called 'overspin'.
+      </p><p>
+	Thanks are due to L. Bunt Jackson who noted the static
+	compilation problem in an article in Dr. Dobb's Journal.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="performance.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="performance.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="performance-settings.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 9. Authoritative Server Performance </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 3. Performance related settings</td></tr></table></div></body></html>

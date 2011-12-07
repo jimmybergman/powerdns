@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 15. Recursion</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="domainmetadata.html" title="Chapter 14. Per zone settings aka Domain Metadata" /><link rel="next" href="built-in-recursor.html" title="Chapter 16. PowerDNS Recursor: a high performance resolving nameserver" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 15. Recursion</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="domainmetadata.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="built-in-recursor.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 15. Recursion"><div class="titlepage"><div><div><h2 class="title"><a id="recursion"></a>Chapter 15. Recursion</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="recursion.html#recursion-details">1. Details</a></span></dt></dl></div><p>(only available from 1.99.8 and onwards, recursing component available since 2.9.5)</p><p>
+      From 2.9.5 onwards, PowerDNS offers both authoritative nameserving capabilities and a recursive nameserver component. These two halves
+      are normally separate but many users insist on combining both recursion and authoritative service on one IP address. This can be likened 
+      to running Apache and Squid both on port 80.
+    </p><p>
+      However, many sites want to do this anyhow and some with good reason. For example, a setup like this allows the creation of fake domains
+      which only exist for local users. Such domains often don't end on ".com" or ".org" but on ".intern" or ".name-of-isp".
+    </p><p>
+      PowerDNS can cooperate with either its own recursor or any other you have available to deliver recursive service on its port.
+    </p><p>
+      By specifying the <span class="command"><strong>recursor</strong></span> option in the configuration file, questions requiring recursive treatment will be handed over
+      to the IP address specified. An example configuration might be <span class="command"><strong>recursor=130.161.180.1</strong></span>, which designates 130.161.180.1 as
+      the nameserver to handle recursive queries.
+    </p><p>
+      Take care not to point <span class="command"><strong>recursor</strong></span> to the PowerDNS Authoritative Server itself, which leads to a very tight packet loop!
+    </p><p>
+      By specifying <span class="command"><strong>allow-recursion</strong></span>, recursion can be restricted to netmasks specified. The default is to allow
+      recursion from everywhere. Example: <span class="command"><strong>allow-recursion=192.168.0.0/24, 10.0.0.0/8, 1.2.3.4</strong></span>.
+    </p><div class="sect1" title="1. Details"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="recursion-details"></a>1. Details</h2></div></div></div><p>
+	Questions carry a number of flags. One of these is called 'Recursion Desired'. If PDNS is configured to allow recursion, AND such a flag
+	is seen, AND the IP address of the client is allowed to recurse via PDNS, then the packet may be handed to the recursing backend.
+      </p><p>
+	If a Recursion Desired packet arrives and PDNS is configured to allow recursion, but not to the IP address of the client, resolution will proceed 
+	as if the RD flag were unset and the answer will indicate that recursion was not available.
+      </p><p>
+	It is also possible to use a resolver living on a different port. To do so, specify a recursor like this: 
+	<span class="command"><strong>recursor=130.161.180.1:5300</strong></span>.
+      </p><p>
+	If the backend does not answer a question within a large amount of time, this is logged as 'Recursive query for remote 10.96.0.2 with internal id 0 
+	was not answered by backend within timeout, reusing id'. This may happen when using 'BIND' as a recursor as it is prone to drop queries which it can't 
+	answer immediately.
+      </p><p>
+	To make sure that the local authoritative database overrides recursive information, PowerDNS first tries to answer a question from its own database.
+	If that succeeds, the answer packet is sent back immediately without involving the recursor in any way. This means that for questions for which there is no answer, PowerDNS will consult the recursor for an recursive query, even if PowerDNS is authoritative for a domain! This will only cause problems if you 'fake' domains which don't really exist.
+      </p><p>
+	If you want to create such fake domains or override existing domains, please set the <span class="command"><strong>allow-recursion-override</strong></span> feature (available as of 2.9.14).
+      </p><p>
+	Some packets, like those asking for MX records which are needed for SMTP transport of email, can be subject to 'additional processing'. This means
+	that a recursing nameserver is obliged to try to add A records (IP addresses) for any of the mailservers mentioned in the packet, should it have 
+	these addresses available.
+      </p><p>
+	If PowerDNS encounters records needing such processing and finds that it does not have the data in its authoritative database, it will send 
+	an opportunistic quick query to the recursing component to see if it perhaps has such data. This question is worded such that the recursing nameserver
+	should return immediately such as not to block the authoritative nameserver.
+      </p><p>
+	This marks a change from pre-2.9.5 behaviour where a packet was handed wholesale to the recursor in case it needed additional processing which could
+	not proceed from the authoritative database.
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="domainmetadata.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="built-in-recursor.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 14. Per zone settings aka Domain Metadata </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 16. PowerDNS Recursor: a high performance resolving nameserver</td></tr></table></div></body></html>

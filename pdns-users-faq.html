@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. Using and Compiling PowerDNS FAQ</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="faq.html" title="Chapter 22. HOWTO &amp; Frequently Asked Questions" /><link rel="prev" href="faq.html" title="Chapter 22. HOWTO &amp; Frequently Asked Questions" /><link rel="next" href="pdns-devel-faq.html" title="3. Backend developer HOWTO" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. Using and Compiling PowerDNS FAQ</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="faq.html">Prev</a> </td><th width="60%" align="center">Chapter 22. HOWTO &amp; Frequently Asked Questions</th><td width="20%" align="right"> <a accesskey="n" href="pdns-devel-faq.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. Using and Compiling PowerDNS FAQ"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="pdns-users-faq"></a>2. Using and Compiling PowerDNS FAQ</h2></div></div></div><p>
+	In the course of compiling and using PowerDNS, many questions may arise. Here are some we've heard earlier or questions 
+	we expect people may have. Please read this list before mailing us!
+      </p><p>
+	If you don't see your question answered here, please check out <a class="ulink" href="http://wiki.powerdns.com/projects/trac/wiki/TodoList" target="_top">
+	  the Wiki FAQ</a>, but do note that it is user-editable and not under our constant control.
+      </p><p>
+	</p><div class="variablelist"><dl><dt><span class="term">Q: I get this entry a lot of times in my log file: Authoritative empty NO ERROR to 1.2.3.4 for 'powerdns.nl' (AAAA)..</span></dt><dd><p>
+		As the name implies, this is not an error. It tells you there are questions for a domain which exists in your database, but for
+		which no record of the requested type exists. To get rid of this error, add <span class="command"><strong>log-dns-details=off</strong></span> to your
+		configuration.
+	      </p></dd><dt><span class="term">Q: Can I launch multiple backends simultaneously?</span></dt><dd><p>
+		A: You can. This might for example be useful to keep an existing BIND configuration around but to store new zones in, say
+		MySQL. The syntax to use is 'launch=bind,gmysql'.
+	      </p></dd><dt><span class="term">Q: PowerDNS does not give authoritative answers, how come?</span></dt><dd><p>
+		A: This is almost always not the case. An authoritative answer is recognized by the 'AA' bit being set. Many tools
+		prominently print the number of Authority records included in an answer, leading users to conclude that the 
+		absence or presence of these records indicates the authority of an answer. This is not the case.
+	      </p><p>
+		Verily, many misguided country code domain operators have fallen into this trap and demand authority records, even though
+		these are fluff and quite often misleading. Invite such operators to look at section 6.2.1 of RFC 1034, which shows a correct
+		authoritative answer without authority records. In fact, none of the non-deprecated authoritative answers shown have authority 
+		records!
+	      </p><p>
+		Sorry for sounding like DJB on this, but we get so many misguided questions about authority..
+	      </p></dd><dt><span class="term">Q: Which backend should I use? There are so many!</span></dt><dd><p>
+		A: If you have no external constraints, the Generic MySQL (gmysql) and Generic PostgreSQL (gpgsql) ones are probably the
+		most used and complete. By all means do not use the non-generic MySQL backend, which is deprecated and only available for older
+		installations.
+	      </p><p>
+		The Oracle backend also has happy users, we know of no deployments of the DB2 backend. The BIND backend is pretty capable
+		too in fact, but many prefer a relational database.
+	      </p></dd><dt><span class="term">Q: I'm trying to build from SVN but I get lots of weird errors!</span></dt><dd><p>
+		A: Read the 'HACKING' file, it lists the build requirements (mostly autoconf, automake, libtool). In many cases, 
+		it may be easier to build from the source distribution though. More information for developers
+		is available on <a class="ulink" href="http://wiki.powerdns.com" target="_top">the PowerDNS Open Source Community Wiki</a>.
+	      </p></dd><dt><span class="term">Q: When compiling I get errors about 'sstream' and 'ostringstream', or BITSPERCHAR</span></dt><dd><p>
+		A: Your gcc is too old. Versions 2.95.2 and older are not supported. Many distributions have improved gcc 2.95.2 
+		with an ostringstream implementation, in which case their 2.95.2 is also supported. 
+	      </p></dd><dt><span class="term">Q: PowerDNS crashes when I install the pdns-static .deb on Debian SID</span></dt><dd><p>
+		A: Indeed. Install the .debs that come with Debian or recompile PowerDNS yourself. If not using MySQL, the crashes
+		will go away if you remove setuid and setgid statements from the configuration.
+	      </p></dd><dt><span class="term">Q: Why don't my slaves act on notifications and transfer my updated zone?</span></dt><dd><p>
+		A: Raise the serial number of your zone. In most backends, this is the first digit of the SOA contents field. If this number
+		is lower to equal to that on a slave, it will not consider your zone updated.
+	      </p></dd><dt><span class="term">Q: Master or Slave support is not working, PDNS is not picking up changes</span></dt><dd><p>
+		A: The Master/Slave apparatus is off by default. Turn it on by adding a <span class="command"><strong>slave</strong></span> and/or
+		<span class="command"><strong>master</strong></span> statement to the configuration file. Also, check that the configured backend is master or slave capable.
+	      </p></dd><dt><span class="term">Q: My masters won't allow PowerDNS to access zones as it is using the wrong local IP address</span></dt><dd><p>
+		A: Mark Bergsma contributed the query-local-address setting to tell PowerDNS which local IP address to use. 
+	      </p></dd><dt><span class="term">Q: I compiled PowerDNS myself and I see weird problems, especially on SMP</span></dt><dd><p>
+		A: There are known issues between gcc &lt;3.2 and PowerDNS on Linux SMP systems. The exact cause is not known but
+		moving to our precompiled version always fixes the problems. If you compile yourself, use a recent gcc!
+	      </p></dd><dt><span class="term">Q: I see this a lot: Backend error: Failed to execute mysql_query, perhaps connection died?</span></dt><dd><p>
+		A: Check your MySQL timeout, it may be set too low. This can be changed in the <code class="filename">my.cnf</code> file.
+	      </p></dd><dt><span class="term">Q: PowerDNS does not answer queries on all my IP addresses and I've ignored the warning I got about that at startup</span></dt><dd><p>
+		A: Please don't ignore what PowerDNS says to you. Furthermore, read <a class="xref" href="all-settings.html" title="Chapter 19. Index of all Authoritative Server settings">Chapter 19, <i>Index of all Authoritative Server settings</i></a> about the <span class="command"><strong>local-address</strong></span>
+		setting, and use it to specify which IP addresses PowerDNS should listen on.
+	      </p></dd><dt><span class="term">Q: Can I use a MySQL database with the Windows version of PowerDNS?</span></dt><dd><p>
+		A: You can. MySQL support is supplied through the ODBC backend, which is compiled into the main binary.
+		So if you want to use MySQL you can change the pdns.conf file, which is located in the PowerDNS for Windows directory, to use the 
+		correct ODBC data sources.
+
+		If you don't know how to use ODBC with MySQL:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+		      Download MyODBC from <a class="ulink" href="http://www.mysql.com/" target="_top">http://www.mysql.com/</a>
+		    </p></li><li class="listitem"><p>
+		      Install the MySQL ODBC driver.
+		    </p></li></ul></div><p>
+		Then you can follow the instructions located in <a class="xref" href="windows.html" title="Chapter 3. Installing on Microsoft Windows">Chapter 3, <i>Installing on Microsoft Windows</i></a>.
+		But instead of selecting the Microsoft Access Driver you select the MySQL ODBC Driver and configure it to use your MySQL database.
+    
+		</p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>For other databases for which an ODBC driver is available, the procedure is the same as this example.</p></td></tr></table></div><p>
+	      </p></dd></dl></div><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="faq.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="faq.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="pdns-devel-faq.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 22. HOWTO &amp; Frequently Asked Questions </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 3. Backend developer HOWTO</td></tr></table></div></body></html>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix G. Cryptographic software and export control</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="further-copyrights.html" title="Appendix F. Further copyright statements" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix G. Cryptographic software and export control</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="further-copyrights.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> </td></tr></table><hr /></div><div class="appendix" title="Appendix G. Cryptographic software and export control"><div class="titlepage"><div><div><h2 class="title"><a id="cryptographic-notes-eccn"></a>Appendix G. Cryptographic software and export control</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="cryptographic-notes-eccn.html#id424090">1. Specific United States Export Control Notes</a></span></dt></dl></div><p>
+    In certain legal climates, PowerDNS might potentially require an export control status, particularly 
+    since PowerDNS software contains cryptographic primitives.
+  </p><p>
+    PowerDNS does not itself implement any cryptographic algorithms but relies on third party implementations
+    of AES, RSA, ECDSA, GOST, MD5 and various SHA-based hashing algorithms. 
+  </p><p>
+    For AES, we rely on Brian Gladmans code, as outlined in <a class="xref" href="further-copyrights.html" title="Appendix F. Further copyright statements">Appendix F, <i>Further copyright statements</i></a>. Furthermore,
+    RSA, MD5 and the SHA-based algorithms are supplied as a copy of <a class="ulink" href="http://www.polarssl.org" target="_top">PolarSSL</a>. 
+  </p><p>
+    Optionally, PowerDNS can link in a copy of the open source <a class="ulink" href="http://botan.randombits.org" target="_top">Botan cryptographic</a> library.
+  </p><p>
+    Optionally, PowerDNS can link in a copy of the open source <a class="ulink" href="http://www.cryptopp.com" target="_top">Crypto++</a> library.
+  </p><div class="sect1" title="1. Specific United States Export Control Notes"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="id424090"></a>1. Specific United States Export Control Notes</h2></div></div></div><p>
+    PowerDNS is not "US Origin" software. For re-export, like most open source, publicly available "mass market" projects, PowerDNS is 
+    considered to be governed by section 740.13(e) of the US EAR,  "Unrestricted encryption source code", under which PowerDNS source code  
+    would be considered re-exportable from the US without an export license under License Exception TSU (Technology and Software - Unrestricted).
+  </p><p>
+    Like most open source projects containing some encryption, the ECCN that best fits PowerDNS software is 5D002.
+  </p><p>
+    The official link to the publicly available source code is <a class="ulink" href="http://downloads.powerdns.com/releases/" target="_top">http://downloads.powerdns.com/releases</a>.
+  </p><p>
+    If absolute certainty is required, we recommend consulting an expert in US Export Control, or asking the BIS for confirmation.
+  </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="further-copyrights.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> </td></tr><tr><td width="40%" align="left" valign="top">Appendix F. Further copyright statements </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> </td></tr></table></div></body></html>

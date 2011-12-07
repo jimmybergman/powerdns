@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>9. Bind zone file backend</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="db2.html" title="8. DB2 backend" /><link rel="next" href="odbc.html" title="10. ODBC backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">9. Bind zone file backend</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="db2.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="odbc.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="9. Bind zone file backend"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="bindbackend"></a>9. Bind zone file backend</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="bindbackend.html#id419542">9.1. Operation</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#bind-control-commands">9.2. Pdns_control commands</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#id419658">9.3. Performance</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#id419681">9.4. Master/slave configuration</a></span></dt><dt><span class="sect2"><a href="bindbackend.html#id419718">9.5. Commands</a></span></dt></dl></div><p>
+	</p><div class="table"><a id="id419384"></a><p class="title"><b>Table A.9. Bind zone file backend capabilities</b></p><div class="table-contents"><table summary="Bind zone file backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>Yes</td></tr><tr><td>Slave</td><td>Yes</td></tr><tr><td>Superslave</td><td>Experimental</td></tr><tr><td>Autoserial</td><td>No</td></tr><tr><td>DNSSEC</td><td>Yes, but no key storage</td></tr><tr><td>Module name</td><td>none (built in)</td></tr><tr><td>Launch</td><td>bind</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	The BindBackend started life as a demonstration of the versatility of PDNS but quickly gained in importance when there appeared to be demand
+	for a Bind 'workalike'.
+      </p><p>
+	The BindBackend parses a Bind-style named.conf and extracts information about zones from it. It makes no attempt to honour other configuration flags,
+	which you should configure (when available) using the PDNS native configuration.
+      </p><p>
+	</p><div class="variablelist"><dl><dt><span class="term">--help=bind</span></dt><dd><p>
+                Outputs all known parameters related to the bindbackend
+	      </p></dd><dt><span class="term">bind-example-zones</span></dt><dd><p>
+		Loads the 'example.com' zone which can be queried to determine if PowerDNS is functioning without configuring 
+		database backends. This feature is no longer supported from 2.9.21 onwards.
+	      </p></dd><dt><span class="term">bind-config=</span></dt><dd><p>
+		Location of the Bind configuration file to parse.
+	      </p></dd><dt><span class="term">bind-check-interval=</span></dt><dd><p>
+		How often to check for zone changes. See 'Operation' section.
+	      </p></dd><dt><span class="term">bind-enable-huffman</span></dt><dd><p>
+		Enable Huffman compression on zone data. Currently saves around 20% of memory actually used, but slows down operation
+		somewhat.
+	      </p></dd></dl></div><p>
+      </p><div class="sect2" title="9.1. Operation"><div class="titlepage"><div><div><h3 class="title"><a id="id419542"></a>9.1. Operation</h3></div></div></div><p>
+	  On launch, the BindBackend first parses the named.conf to determine which zones need to be loaded. These will then be parsed
+	  and made available for serving, as they are parsed. So a named.conf with 100.000 zones may take 20 seconds to load, but after 10 seconds, 
+	  50.000 zones will already be available. While a domain is being loaded, it is not yet available, to prevent incomplete answers.
+	</p><p>
+	  Reloading is currently done only when a request for a zone comes in, and then only after <span class="command"><strong>bind-check-interval</strong></span> seconds have passed
+	  after the last check. If a change occurred, access to the zone is disabled, the file is reloaded, access is restored, and the question is answered.
+	  For regular zones, reloading is fast enough to answer the question which lead to the reload within the DNS timeout.
+	</p><p>
+          If <span class="command"><strong>bind-check-interval</strong></span> is specified as zero, no checks will be performed until the <span class="command"><strong>pdns_control reload</strong></span>
+	  is given.
+        </p></div><div class="sect2" title="9.2. Pdns_control commands"><div class="titlepage"><div><div><h3 class="title"><a id="bind-control-commands"></a>9.2. Pdns_control commands</h3></div></div></div><p>
+	  </p><div class="variablelist"><dl><dt><span class="term">bind-domain-status <strong class="userinput"><code>domain</code></strong> [<strong class="userinput"><code>domain</code></strong>]</span></dt><dd><p>
+		  Output status of domain or domains. Can be one of 'seen in named.conf, not parsed', 'parsed successfully at &lt;time;&gt;' or
+		  'error parsing at line ... at &lt;time&gt;'.
+		</p></dd><dt><span class="term">bind-list-rejects</span></dt><dd><p>
+		  Lists all zones that have problems, and what those problems are.
+		</p></dd><dt><span class="term">bind-reload-now <strong class="userinput"><code>domain</code></strong></span></dt><dd><p>
+		  Reloads a zone from disk NOW, reporting back results.
+		</p></dd></dl></div><p>
+	</p></div><div class="sect2" title="9.3. Performance"><div class="titlepage"><div><div><h3 class="title"><a id="id419658"></a>9.3. Performance</h3></div></div></div><p>
+	  The BindBackend does not benefit from the packet cache as it is fast enough on its own. Furthermore, on most systems, there will
+	  be no benefit in using multiple CPUs for the packetcache, so a noticeable speedup can be attained by specifying 
+	  <span class="command"><strong>distributor-threads=1</strong></span> in <code class="filename">pdns.conf</code>.
+	</p></div><div class="sect2" title="9.4. Master/slave configuration"><div class="titlepage"><div><div><h3 class="title"><a id="id419681"></a>9.4. Master/slave configuration</h3></div></div></div><div class="sect3" title="Master"><div class="titlepage"><div><div><h4 class="title"><a id="id419686"></a>Master</h4></div></div></div><p>
+	    Works as expected. At startup, no notification storm is performed as this is generally not useful. Perhaps in the future the Bind Backend
+	    will attempt to store zone metadata in the zone, allowing it to determine if a zone has changed its serial since the last time
+	    notifications were sent out.
+	  </p><p>
+	    Changes which are discovered when reloading zones do lead to notifications however.
+	  </p></div><div class="sect3" title="Slave"><div class="titlepage"><div><div><h4 class="title"><a id="id419702"></a>Slave</h4></div></div></div><p>
+	    Also works as expected. The Bind backend expects to be able to write to a directory where a slave domain lives. The incoming zone is stored
+	    as 'zonename.RANDOM' and atomically renamed if it is retrieved successfully, and parsed only then.
+	  </p><p>
+	    In the future, this may be improved so the old zone remains available should parsing fail.
+	  </p></div></div><div class="sect2" title="9.5. Commands"><div class="titlepage"><div><div><h3 class="title"><a id="id419718"></a>9.5. Commands</h3></div></div></div><p>
+	  <span class="command"><strong>pdns_control</strong></span> offers commands to communicate instructions to PowerDNS. These are detailed here.
+	  </p><div class="variablelist"><dl><dt><span class="term">rediscover</span></dt><dd><p>
+		  Reread the bind configuration file (<code class="filename">named.conf</code>). If parsing fails, the old configuration
+		  remains in force and pdns_control reports the error. Any newly discovered domains are read, discarded domains 
+		  are removed from memory.
+		  </p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+		      Except that with 2.9.3, they are not removed from memory.
+		    </p></td></tr></table></div><p>
+		</p></dd><dt><span class="term">reload</span></dt><dd><p>
+		  All zones with a changed timestamp are reloaded at the next incoming query for them.
+		</p></dd></dl></div><p>
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="db2.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="odbc.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">8. DB2 backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 10. ODBC backend</td></tr></table></div></body></html>

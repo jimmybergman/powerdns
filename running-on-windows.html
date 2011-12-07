@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. Running PDNS on Microsoft Windows</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="windows.html" title="Chapter 3. Installing on Microsoft Windows" /><link rel="prev" href="windows.html" title="Chapter 3. Installing on Microsoft Windows" /><link rel="next" href="configuring-db-connection.html" title="Chapter 4. Basic setup: configuring database connectivity" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. Running PDNS on Microsoft Windows</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="windows.html">Prev</a> </td><th width="60%" align="center">Chapter 3. Installing on Microsoft Windows</th><td width="20%" align="right"> <a accesskey="n" href="configuring-db-connection.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. Running PDNS on Microsoft Windows"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="running-on-windows"></a>2. Running PDNS on Microsoft Windows</h2></div></div></div><p>
+      If you installed pdns on Windows NT, 2000 or XP you can run pdns as a service.
+	  </p><p>
+      This is how to do it:
+      Go to services (<code class="filename">Start-&gt;Settings-&gt;Control Panel-&gt;Administrative Tools-&gt;Services</code>) and locate <code class="filename">PDNS</code> (you should have registered the program as a NT service during the installation).
+    </p><p>
+      Double-click on <code class="filename">PDNS</code> and push the start button. You should now see a progress bar that gets to the end and see the status change to 'Started'.
+    </p><p>
+      This is the same as starting pdns like this:
+      <code class="filename">pdns.exe --ntservice</code>
+    </p><p>
+      If you haven't registered pdns as a service during the installation you can do so from the commandline by starting pdns like this:
+      <code class="filename">pdns.exe --register-service</code>
+    </p><p>
+      You can run pdns as a standard console program by using a command prompt or <code class="filename">Start-&gt;Run...</code>
+      This way you can specify command-line parameters (see the documentation for commandline options).
+    </p><p>
+      If you chose to add a PowerDNS menu to the start menu during the installation you can start pdns using the pdns shortcut in that menu.
+    </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="windows.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="windows.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="configuring-db-connection.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 3. Installing on Microsoft Windows </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 4. Basic setup: configuring database connectivity</td></tr></table></div></body></html>

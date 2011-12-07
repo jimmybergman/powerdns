@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>4. Read/write slave-capable backends</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backend-writers-guide.html" title="Appendix C. Backend writers' guide" /><link rel="prev" href="backend-configuration-details.html" title="3. Declaring and reading configuration details" /><link rel="next" href="master-backends.html" title="5. Read/write master-capable backends" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">4. Read/write slave-capable backends</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="backend-configuration-details.html">Prev</a> </td><th width="60%" align="center">Appendix C. Backend writers' guide</th><td width="20%" align="right"> <a accesskey="n" href="master-backends.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="4. Read/write slave-capable backends"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="rw-backends"></a>4. Read/write slave-capable backends</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="rw-backends.html#id422497">4.1. Supermaster/Superslave capability</a></span></dt></dl></div><p>
+	The backends above are 'natively capable' in that they contain all data relevant for a domain and do not pull in data from other nameservers.
+	To enable storage of information, a backend must be able to do more.
+      </p><p>
+	Before diving into the details of the implementation some theory is in order. Slave domains are pulled from the master. PDNS needs to 
+	know for which domains it is to be a slave, and for each slave domain, what the IP address of the master is.
+      </p><p>
+	A slave zone is pulled from a master, after which it is 'fresh', but this is only temporary. In the SOA record of a zone there is a field
+	which specifies the 'refresh' interval. After that interval has elapsed, the slave nameserver needs to check at the master ff the serial
+	number there is higher than what is stored in the backend locally.
+      </p><p>
+	If this is the case, PDNS dubs the domain 'stale', and schedules a transfer of data from the remote. This transfer remains scheduled
+	until the serial numbers remote and locally are identical again.
+      </p><p>
+	This theory is implemented by the <code class="function">getUnfreshSlaveInfos</code> method, which is called on all backends periodically. 
+	This method fills a vector of <span class="command"><strong>SlaveDomain</strong></span>s with domains that are unfresh and possibly stale. 
+      </p><p>
+	PDNS then retrieves the SOA of those domains remotely and locally and creates a list of stale domains. For each of these domains, PDNS
+	starts a zonetransfer to resynchronise. Because zone transfers can fail, it is important that the interface to the backend allows
+	for transaction semantics because a zone might otherwise be left in a halfway updated situation.
+      </p><p>
+	The following excerpt from the DNSBackend shows the relevant functions:
+      </p><p>
+	</p><pre class="programlisting">
+	  class DNSBackend {
+	  public:
+           /* ... */
+           virtual bool getDomainInfo(const string &amp;domain, DomainInfo &amp;di);
+	   virtual bool isMaster(const string &amp;name, const string &amp;ip);
+	   virtual bool startTransaction(const string &amp;qname, int id);
+	   virtual bool commitTransaction();
+	   virtual bool abortTransaction();
+	   virtual bool feedRecord(const DNSResourceRecord &amp;rr);
+	   virtual void getUnfreshSlaveInfos(vector&lt;DomainInfo&gt;* domains);
+	   virtual void setFresh(int id);
+           /* ... */
+	 }
+	</pre><p>
+      </p><p>
+        The mentioned DomainInfo struct looks like this:
+	</p><div class="table"><a id="id422201"></a><p class="title"><b>Table C.3. DomainInfo struct</b></p><div class="table-contents"><table summary="DomainInfo struct" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>int id</td><td>ID of this zone within this backend</td></tr><tr><td>string master</td><td>IP address of the master of this domain, if any</td></tr><tr><td>u_int32_t serial</td><td>Serial number of this zone</td></tr><tr><td>u_int32_t notified_serial</td><td>Last serial number of this zone that slaves have seen</td></tr><tr><td>time_t last_check</td><td>Last time this zone was checked over at the master for changes</td></tr><tr><td>enum {Master,Slave,Native} kind</td><td>Type of zone</td></tr><tr><td>DNSBackend *backend</td><td>Pointer to the backend that feels authoritative for a domain and can act as a slave</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	These functions all have a default implementation that returns false - which explains that these methods can be omitted in simple backends. 
+	Furthermore, unlike with simple backends, a slave capable backend must make sure that the 'DNSBackend *db' field of the SOAData record is filled 
+	out correctly - it is used to determine which backend will house this zone. 
+	</p><div class="variablelist"><dl><dt><span class="term">bool isMaster(const string &amp;name, const string &amp;ip);</span></dt><dd><p>
+		If a backend considers itself a slave for the domain <span class="command"><strong>name</strong></span> and if the IP address in <span class="command"><strong>ip</strong></span>
+		is indeed a master, it should return true. False otherwise. This is a first line of checks to guard against reloading a domain
+		unnecessarily.
+	      </p></dd><dt><span class="term">void getUnfreshSlaveInfos(vector&lt;DomainInfo&gt;* domains)</span></dt><dd><p>
+		When called, the backend should examine its list of slave domains and add any unfresh ones to the domains vector.
+	      </p></dd><dt><span class="term">bool getDomainInfo(const string &amp;name, DomainInfo &amp; di)</span></dt><dd><p>
+                This is like getUnfreshSlaveInfos, but for a specific domain. If the backend considers itself authoritative for the named
+                zone, <code class="function">di</code> should be filled out, and 'true' be returned. Otherwise return false.
+	      </p></dd><dt><span class="term">bool startTransaction(const string &amp;qname, int id)</span></dt><dd><p>
+		When called, the backend should start a transaction that can be committed or rolled back atomically later on. 
+		In SQL terms, this function should <span class="command"><strong>BEGIN</strong></span> a transaction and <span class="command"><strong>DELETE</strong></span> all
+		records.
+	      </p></dd><dt><span class="term">bool feedRecord(const DNSResourceRecord &amp;rr)</span></dt><dd><p>
+		Insert this record.
+	      </p></dd><dt><span class="term">bool commitTransaction();</span></dt><dd><p>
+		Make the changes effective. In SQL terms, execute <span class="command"><strong>COMMIT</strong></span>.
+	      </p></dd><dt><span class="term">bool abortTransaction();</span></dt><dd><p>
+		Abort changes. In SQL terms, execute <span class="command"><strong>ABORT</strong></span>.
+	      </p></dd><dt><span class="term">bool setFresh()</span></dt><dd><p>
+		Indicate that a domain has either been updated or refreshed without the need for a retransfer. This causes
+		the domain to vanish from the vector modified by <code class="function">getUnfreshSlaveInfos()</code>.
+	      </p></dd></dl></div><p>
+      </p><p>
+	PDNS will always call <code class="function">startTransaction()</code> before making calls to <code class="function">feedRecord()</code>.
+	Although it is likely that <code class="function">abortTransaction()</code> will be called in case of problems, backends should also
+	be prepared to abort from their destructor.
+      </p><p>
+	The actual code in PDNS is currently (1.99.9):
+	</p><pre class="programlisting">
+    Resolver resolver;
+    resolver.axfr(remote,domain.c_str());
+
+    db-&gt;startTransaction(domain, domain_id);
+    
+    L&lt;&lt;Logger::Error&lt;&lt;"AXFR started for '"&lt;&lt;domain&lt;&lt;"'"&lt;&lt;endl;
+    Resolver::res_t recs;
+    
+    while(resolver.axfrChunk(recs)) {
+      for(Resolver::res_t::const_iterator i=recs.begin();i!=recs.end();++i) {
+	db-&gt;feedRecord(*i);
+      }
+    }
+    db-&gt;commitTransaction();
+    db-&gt;setFresh(domain_id);
+    L&lt;&lt;Logger::Error&lt;&lt;"AXFR done for '"&lt;&lt;domain&lt;&lt;"'"&lt;&lt;endl;
+	</pre><p>
+      </p><div class="sect2" title="4.1. Supermaster/Superslave capability"><div class="titlepage"><div><div><h3 class="title"><a id="id422497"></a>4.1. Supermaster/Superslave capability</h3></div></div></div><p>
+          A backend that wants to act as a 'superslave' for a master should implement the following method:
+          </p><pre class="programlisting">
+            class DNSBackend 
+            {
+               virtual bool superMasterBackend(const string &amp;ip, const string &amp;domain, const vector&lt;DNSResourceRecord&gt;&amp;nsset, string *account, DNSBackend **db)
+            };
+          </pre><p>
+          This function gets called with the IP address of the potential supermaster, the domain it is sending a notification for and the set of NS records
+          for this domain at that IP address. 
+        </p><p>
+          Using the supplied data, the backend needs to determine if this is a bonafide 'supernotification' which should be honoured. If it decides that it
+          should, the supplied pointer to 'account' needs to be filled with the configured name of the supermaster (if accounting is desired), and the 
+          db needs to be filled with a pointer to your backend.
+        </p><p>
+          Supermaster/superslave is a complicated concept, if this is all unclear see <a class="xref" href="slave.html#supermaster" title="2.1. Supermaster automatic provisioning of slaves">Section 2.1, “Supermaster automatic provisioning of slaves”</a>.
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="backend-configuration-details.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backend-writers-guide.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="master-backends.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">3. Declaring and reading configuration details </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 5. Read/write master-capable backends</td></tr></table></div></body></html>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>3. Performance related settings</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="performance.html" title="Chapter 9. Authoritative Server Performance" /><link rel="prev" href="nptl.html" title="2. Native Posix Thread Library vs LinuxThreads" /><link rel="next" href="migration.html" title="Chapter 10. Migrating to PowerDNS" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">3. Performance related settings</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="nptl.html">Prev</a> </td><th width="60%" align="center">Chapter 9. Authoritative Server Performance</th><td width="20%" align="right"> <a accesskey="n" href="migration.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="3. Performance related settings"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="performance-settings"></a>3. Performance related settings</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="performance-settings.html#packetcache">3.1. Packet Cache</a></span></dt><dt><span class="sect2"><a href="performance-settings.html#querycache">3.2. Query Cache</a></span></dt></dl></div><p>
+      Different backends will have different characteristics - some will want to have more parallel
+      instances than others. In general, if your backend is latency bound, like most relational databases are, 
+      it pays to open more backends.
+    </p><p>
+      This is done with the <span class="command"><strong>distributor-threads</strong></span> setting. Of special importance is the choice between 1
+      or more backends. In case of only 1 thread, PDNS reverts to unthreaded operation which may be a lot faster, depending
+      on your operating system and architecture.
+    </p><p>
+      Another very important setting <span class="command"><strong>cache-ttl</strong></span>. PDNS caches entire packets it sends out so as to save the
+      time to query backends to assemble all data. The default setting of 10 seconds may be low for high traffic sites, a value of
+      60 seconds rarely leads to problems.
+    </p><p>
+      Some PDNS operators set cache-ttl to many hours or even days, and use <span class="command"><strong>pdns_control purge</strong></span> to selectively
+      or globally notify PDNS of changes made in the backend. Also look at the Query Cache described in this chapter. It may
+      materially improve your performance.
+    </p><p>
+      To determine if PDNS is unable to keep up with packets, determine the value of the <span class="command"><strong>qsize-q</strong></span> variable. 
+      This represents the number of packets waiting for database attention. During normal operations the queue should be small. 
+    </p><p>
+      If it is known that backends will not contain CNAME records, the <span class="command"><strong>skip-cname</strong></span> setting can be used to prevent 
+      the normally mandatory CNAME lookup that is needed at least once for each DNS query. 
+    </p><p>
+      Much the same holds for the <span class="command"><strong>wildcards</strong></span> setting. On by default, each non-existent query will lead to a number of additional
+      wildcard queries. If it is known that the backends do not contain wildcard records, performance can be improved by adding <span class="command"><strong>wildcards=no</strong></span>
+      to <code class="filename">pdns.conf</code>.
+    </p><p>
+      Logging truly kills performance as answering a question from the cache is an order of magnitude less work than logging a 
+      line about it. Busy sites will prefer to turn <span class="command"><strong>log-dns-details</strong></span> and <span class="command"><strong>log-failed-updates</strong></span>
+      off.
+    </p><div class="sect2" title="3.1. Packet Cache"><div class="titlepage"><div><div><h3 class="title"><a id="packetcache"></a>3.1. Packet Cache</h3></div></div></div><p>
+	PDNS by default uses the 'Packet Cache' to recognise identical questions and supply them with identical answers, without any further 
+	processing. The default time to live is 10 seconds. It has been observed that the utility of the packet cache increases with the load on 
+	your nameserver. 
+      </p><p>
+	Not all backends may benefit from the packetcache. If your backend is memory based and does not lead to context switches, the packetcache
+	may actually hurt performance. 
+      </p><p>
+	The size of the packetcache can be observed with <span class="command"><strong>/etc/init.d/pdns show packetcache-size</strong></span>
+      </p></div><div class="sect2" title="3.2. Query Cache"><div class="titlepage"><div><div><h3 class="title"><a id="querycache"></a>3.2. Query Cache</h3></div></div></div><p>
+	Besides entire packets, PDNS can also cache individual backend queries. Each DNS query leads to a number of backend queries,
+	the most obvious additional backend query is the check for a possible CNAME. So, when a query comes in for the 'A' record for
+	'www.powerdns.com', PDNS must first check for a CNAME for 'www.powerdns.com'.
+      </p><p>
+	The Query Cache caches these backend queries, many of which are quite repetitive. PDNS only caches queries with no answer,
+	or with exactly one. In the future this may be expanded but this lightweight solution is very simple and therefore fast.
+      </p><p>
+	Most gain is made from caching negative entries, ie, queries that have no answer. As these take little memory to store and
+	are typically not a real problem in terms of speed-of-propagation, the default TTL for negative queries is a rather high 60 seconds.
+      </p><p>
+	This only is a problem when first doing a query for a record, adding it, and immediately doing a query for that record again. It may
+	then take up to 60 seconds to appear. Changes to existing records however do not fall under the negative query ttl 
+	(<span class="command"><strong>negquery-cache-ttl</strong></span>), but under the generic <span class="command"><strong>query-cache-ttl</strong></span> which defaults to 20 seconds.
+      </p><p>
+	The default values should work fine for many sites. When tuning, keep in mind that the Query Cache mostly saves database access 
+	but that the Packet Cache also saves a lot of CPU because 0 internal processing is done when answering a question from the
+	Packet Cache.
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="nptl.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="performance.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="migration.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">2. Native Posix Thread Library vs LinuxThreads </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 10. Migrating to PowerDNS</td></tr></table></div></body></html>

@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>5. Generic MySQL and PgSQL backends</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="backends-detail.html" title="Appendix A. Backends in detail" /><link rel="prev" href="pdnsbackend.html" title="4. MySQL PowerDNS backend" /><link rel="next" href="oracle.html" title="6. Oracle backend" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">5. Generic MySQL and PgSQL backends</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="pdnsbackend.html">Prev</a> </td><th width="60%" align="center">Appendix A. Backends in detail</th><td width="20%" align="right"> <a accesskey="n" href="oracle.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="5. Generic MySQL and PgSQL backends"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="generic-mypgsql-backends"></a>5. Generic MySQL and PgSQL backends</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416088">5.1. MySQL specifics</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416185">5.2. PostgreSQL specifics</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#goracle">5.3. Oracle specifics</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416345">5.4. Basic functionality</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#master-slave-queries">5.5. Master/slave queries</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416787">5.6. Fancy records</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id416883">5.7. Settings and specifying queries</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417017">5.8. Native operation</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417041">5.9. Slave operation</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417084">5.10. Superslave operation</a></span></dt><dt><span class="sect2"><a href="generic-mypgsql-backends.html#id417108">5.11. Master operation</a></span></dt></dl></div><p>
+	</p><div class="table"><a id="id415980"></a><p class="title"><b>Table A.5. Generic PgSQL and MySQL backend capabilities</b></p><div class="table-contents"><table summary="Generic PgSQL and MySQL backend capabilities" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>Native</td><td>Yes</td></tr><tr><td>Master</td><td>Yes</td></tr><tr><td>Slave</td><td>Yes</td></tr><tr><td>Superslave</td><td>Yes</td></tr><tr><td>Autoserial</td><td>Yes (v3.1 and up)</td></tr><tr><td>Case</td><td>All lower</td></tr><tr><td>DNSSEC</td><td>Yes (set gmysql-dnssec or gpgsql-dnssec)</td></tr><tr><td>Module name &lt; 2.9.3</td><td>pgmysql</td></tr><tr><td>Module name &gt; 2.9.2</td><td>gmysql and gpgsql</td></tr><tr><td>Launch name</td><td>gmysql and gpgsql2 and gpgsql</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	PostgreSQL and MySQL backend with easily configurable SQL statements, allowing you to graft PDNS on any PostgreSQL or MySQL database of your choosing. 
+	Because all database schemas will be different, a generic backend is needed to cover all needs. 
+      </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>Host names and the MNAME of a SOA records are NEVER terminated with a '.' in PowerDNS storage! If a trailing '.' is present
+    it will inevitably cause problems, problems that may be hard to debug.</p></td></tr></table></div><p>
+	The template queries are expanded using the C function 'snprintf' which implies that substitutions are performed on the basis of %-place holders. 
+	To place a % in a query which will not be substituted, use %%. Make sure to fill out the search key, often called 'name' in lower case!
+      </p><p>
+	There are in fact two backends, one for PostgreSQL and one for MySQL but they accept the same settings and use almost exactly the same database schema.
+      </p><div class="sect2" title="5.1. MySQL specifics"><div class="titlepage"><div><div><h3 class="title"><a id="id416088"></a>5.1. MySQL specifics</h3></div></div></div><p>
+	  </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	      If using MySQL with 'slave' support enabled in PowerDNS you <span class="command"><strong>must</strong></span> run MySQL with a table engine that supports transactions.
+	    </p></td></tr></table></div><p>
+	</p><p>
+	  In practice, great results are achieved with the 'InnoDB' tables. PowerDNS will silently function with non-transaction aware MySQLs but at one point
+	  this is going to harm your database, for example when an incoming zone transfer fails.
+	</p><p>
+	  The default setup conforms to the following schema:
+	  </p><pre class="programlisting">
+create table domains (
+ id		 INT auto_increment,
+ name		 VARCHAR(255) NOT NULL,
+ master		 VARCHAR(128) DEFAULT NULL,
+ last_check	 INT DEFAULT NULL,
+ type		 VARCHAR(6) NOT NULL,
+ notified_serial INT DEFAULT NULL, 
+ account         VARCHAR(40) DEFAULT NULL,
+ primary key (id)
+) Engine=InnoDB;
+
+CREATE UNIQUE INDEX name_index ON domains(name);
+
+CREATE TABLE records (
+  id              INT auto_increment,
+  domain_id       INT DEFAULT NULL,
+  name            VARCHAR(255) DEFAULT NULL,
+  type            VARCHAR(10) DEFAULT NULL,
+  content         VARCHAR(4096) DEFAULT NULL,
+  ttl             INT DEFAULT NULL,
+  prio            INT DEFAULT NULL,
+  change_date     INT DEFAULT NULL,
+  primary key(id)
+)Engine=InnoDB;
+
+CREATE INDEX rec_name_index ON records(name);
+CREATE INDEX nametype_index ON records(name,type);
+CREATE INDEX domain_id ON records(domain_id);
+
+create table supermasters (
+  ip VARCHAR(25) NOT NULL, 
+  nameserver VARCHAR(255) NOT NULL, 
+  account VARCHAR(40) DEFAULT NULL
+) Engine=InnoDB;
+
+GRANT SELECT ON supermasters TO pdns;
+GRANT ALL ON domains TO pdns;
+GRANT ALL ON records TO pdns;
+	  </pre><p>
+	</p><p>
+	  Zone2sql with the --gmysql flag also assumes this layout is in place.
+	</p><p>
+	To support or migrate to DNSSEC, the following SQL statements must be executed:
+</p><pre class="programlisting">
+create table domainmetadata (
+ id              INT auto_increment,
+ domain_id       INT NOT NULL,
+ kind            VARCHAR(16),
+ content        TEXT,
+ primary key(id)
+);
+
+create table cryptokeys (
+ id             INT auto_increment,
+ domain_id      INT NOT NULL,
+ flags          INT NOT NULL,
+ active         BOOL,
+ content        TEXT,
+ primary key(id)
+);               
+
+alter table records add ordername      VARCHAR(255);
+alter table records add auth bool;
+create index orderindex on records(ordername);
+
+create table tsigkeys (
+ id             INT auto_increment,
+ name           VARCHAR(255), 
+ algorithm      VARCHAR(255),
+ secret         VARCHAR(255),
+ primary key(id)
+);
+
+create unique index namealgoindex on tsigkeys(name, algorithm);
+
+alter table records change column type type VARCHAR(10);
+
+</pre><p>	
+	</p><p>
+	  For full migration notes, please see <a class="xref" href="dnssec-migration.html" title="3. Migration">Section 3, “Migration”</a>.
+	</p><p>
+	  This schema contains all elements needed for master, slave and superslave operation. Depending on which features will be used, the 'GRANT' statements
+	  can be trimmed to make sure PDNS cannot subvert the contents of your database.
+	</p><p>
+	  When using the InnoDB storage engine, we suggest adding the following lines to the 'create table records' command above:
+</p><pre class="programlisting">
+CONSTRAINT `records_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domains`
+(`id`) ON DELETE CASCADE
+</pre><p>
+	</p><p>
+	  This automates deletion of records on deletion of a domain from the domains table.
+	</p></div><div class="sect2" title="5.2. PostgreSQL specifics"><div class="titlepage"><div><div><h3 class="title"><a id="id416185"></a>5.2. PostgreSQL specifics</h3></div></div></div><p>
+	The default setup conforms to the following schema, which you should add to a PostgreSQL database.
+	</p><pre class="programlisting">
+create table domains (
+ id		 SERIAL PRIMARY KEY,
+ name		 VARCHAR(255) NOT NULL,
+ master		 VARCHAR(128) DEFAULT NULL,
+ last_check	 INT DEFAULT NULL,
+ type		 VARCHAR(6) NOT NULL,
+ notified_serial INT DEFAULT NULL, 
+ account         VARCHAR(40) DEFAULT NULL
+);
+CREATE UNIQUE INDEX name_index ON domains(name);
+  
+CREATE TABLE records (
+        id              SERIAL PRIMARY KEY,
+        domain_id       INT DEFAULT NULL,
+        name            VARCHAR(255) DEFAULT NULL,
+        type            VARCHAR(10) DEFAULT NULL,
+        content         VARCHAR(4096) DEFAULT NULL,
+        ttl             INT DEFAULT NULL,
+        prio            INT DEFAULT NULL,
+        change_date     INT DEFAULT NULL, 
+        CONSTRAINT domain_exists 
+        FOREIGN KEY(domain_id) REFERENCES domains(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX rec_name_index ON records(name);
+CREATE INDEX nametype_index ON records(name,type);
+CREATE INDEX domain_id ON records(domain_id);
+
+create table supermasters (
+	  ip VARCHAR(25) NOT NULL, 
+	  nameserver VARCHAR(255) NOT NULL, 
+	  account VARCHAR(40) DEFAULT NULL
+);
+
+GRANT SELECT ON supermasters TO pdns;
+GRANT ALL ON domains TO pdns;
+GRANT ALL ON domains_id_seq TO pdns;
+GRANT ALL ON records TO pdns;
+GRANT ALL ON records_id_seq TO pdns;
+	</pre><p>
+      </p><p>
+	Zone2sql with the --gpgsql flag also assumes this layout is in place.
+	</p><p>
+	This schema contains all elements needed for master, slave and superslave operation. Depending on which features will be used, the 'GRANT' statements
+	can be trimmed to make sure PDNS cannot subvert the contents of your database.
+      </p><p>
+      To support DNSSEC or to migrate to DNSSEC, the following statements have to be issued:
+</p><pre class="programlisting">
+
+alter table records add ordername       VARCHAR(255);
+alter table records add auth bool;
+create index orderindex on records(ordername);
+
+create table domainmetadata (
+ id             SERIAL PRIMARY KEY,
+ domain_id      INT REFERENCES domains(id) ON DELETE CASCADE,
+ kind           VARCHAR(16),
+ content        TEXT
+);
+
+create table cryptokeys (
+ id             SERIAL PRIMARY KEY,
+ domain_id      INT REFERENCES domains(id) ON DELETE CASCADE,
+ flags          INT NOT NULL,
+ active         BOOL,
+ content        TEXT
+);               
+
+GRANT ALL ON domainmetadata TO pdns;
+GRANT ALL ON domainmetadata_id_seq TO pdns;
+GRANT ALL ON cryptokeys TO pdns;
+GRANT ALL ON cryptokeys_id_seq TO pdns;
+
+create table tsigkeys (
+ id             SERIAL PRIMARY KEY,
+ name           VARCHAR(255),
+ algorithm      VARCHAR(255), 
+ secret         VARCHAR(255)
+);
+
+create unique index namealgoindex on tsigkeys(name, algorithm);
+
+GRANT ALL ON tsigkeys TO pdns;
+GRANT ALL ON tsigkeys_id_seq TO pdns;
+alter table records alter column type type VARCHAR(10);
+
+</pre><p>  
+</p><p>
+	  For full migration notes, please see <a class="xref" href="dnssec-migration.html" title="3. Migration">Section 3, “Migration”</a>.
+	</p><p>
+	  With PostgreSQL, you may have to run 'createdb powerdns' first and then connect to that database with 'psql powerdns', and 
+	  feed it the schema above.
+	</p></div><div class="sect2" title="5.3. Oracle specifics"><div class="titlepage"><div><div><h3 class="title"><a id="goracle"></a>5.3. Oracle specifics</h3></div></div></div><p>
+	  Generic Oracle support is only available since version 2.9.18.
+	The default setup conforms to the following schema, which you should add to an Oracle database. You may need or want to add 'namespace' statements.
+	</p><pre class="programlisting">
+
+create table domains (
+ id		 NUMBER,
+ name		 VARCHAR(255) NOT NULL,
+ master		 VARCHAR(128) DEFAULT NULL,
+ last_check	 INT DEFAULT NULL,
+ type		 VARCHAR(6) NOT NULL,
+ notified_serial INT DEFAULT NULL, 
+ account         VARCHAR(40) DEFAULT NULL,
+ primary key (id)
+);
+create sequence DOMAINS_ID_SEQUENCE; 
+create index DOMAINS$NAME on Domains (NAME);
+
+ 
+CREATE TABLE records (
+        id              number(11) not NULL,
+        domain_id       INT DEFAULT NULL REFERENCES Domains(ID) ON DELETE CASCADE,
+        name            VARCHAR(255) DEFAULT NULL,
+        type            VARCHAR(10) DEFAULT NULL,
+        content         VARCHAR2(4000) DEFAULT NULL,
+        ttl             INT DEFAULT NULL,
+        prio            INT DEFAULT NULL,
+        change_date     INT DEFAULT NULL, 
+	primary key (id)
+);
+
+create index RECORDS$NAME on RECORDS (NAME);
+create sequence RECORDS_ID_SEQUENCE;
+
+create table supermasters (
+	  ip VARCHAR(25) NOT NULL, 
+	  nameserver VARCHAR(255) NOT NULL, 
+	  account VARCHAR(40) DEFAULT NULL
+);
+
+	</pre><p>
+      </p><p>
+	This schema contains all elements needed for master, slave and superslave operation. Depending on which features will be used,  'GRANT' statements
+	can be trimmed to make sure PDNS cannot subvert the contents of your database.
+      </p><p>
+	  Zone2sql with the --gpgsql flag also assumes this layout is in place.
+	</p><p>
+	  Inserting records is a bit different compared to MySQL and PostgreSQL, you should use:
+</p><pre class="screen">
+insert into domains (id,name,type) values (domains_id_sequence.nextval,'netherlabs.nl','NATIVE');
+	    </pre><p>
+	  </p><p>
+	  Furthermore, use the <span class="command"><strong>goracle-tnsname</strong></span> setting to specify which TNSNAME the Generic Oracle Backend
+	  should be connectiong to. There are no <span class="command"><strong>goracle-dbname</strong></span>, <span class="command"><strong>goracle-host</strong></span> or
+          <span class="command"><strong>goracle-port</strong></span> settings, their equivalent is in <code class="filename">/etc/tnsnames.ora</code>.
+	  </p></div><div class="sect2" title="5.4. Basic functionality"><div class="titlepage"><div><div><h3 class="title"><a id="id416345"></a>5.4. Basic functionality</h3></div></div></div><p>
+	  4 queries are needed for regular lookups, 4 for 'fancy records' which are disabled by default and 1 is needed for zone transfers.
+	</p><p>The 4+4 regular queries must return the following 6 fields, in this exact order:
+	  </p><div class="variablelist"><dl><dt><span class="term">content</span></dt><dd><p>
+		  This is the 'right hand side' of a DNS record. For an A record, this is the IP address for example.
+		</p></dd><dt><span class="term">ttl</span></dt><dd><p>
+		  TTL of this record, in seconds. Must be a real value, no checking is performed.
+		</p></dd><dt><span class="term">prio</span></dt><dd><p>
+		  For MX records, this should be the priority of the mail exchanger specified.
+		</p></dd><dt><span class="term">qtype</span></dt><dd><p>
+		  The ASCII representation of the qtype of this record. Examples are 'A', 'MX', 'SOA', 'AAAA'. Make sure that this
+		  field returns an exact answer - PDNS won't recognise 'A      ' as 'A'. This can be achieved by using a VARCHAR instead 
+		  of a CHAR.
+		</p></dd><dt><span class="term">domain_id</span></dt><dd><p>
+		  Each domain must have a unique domain_id. No two domains may share a domain_id, all records in a domain should have the same. A number.
+		</p></dd><dt><span class="term">name</span></dt><dd><p>
+		  Actual name of a record. Must not end in a '.' and be fully qualified - it is not relative to the name of the domain!
+		</p></dd></dl></div><p>
+	  Please note that the names of the fields are not relevant, but the order is!
+	</p><p>
+	  As said earlier, there are 8 SQL queries for regular lookups. To configure them, set 'gmysql-basic-query' or 'gpgsql-basic-query', depending on your
+	  choice of backend. If so called 'MBOXFW' fancy records are not used, four queries remain:
+	  </p><div class="variablelist"><dl><dt><span class="term">basic-query</span></dt><dd><p>
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where type='%s' and name='%s'</strong></span>
+		  This is the most used query, needed for doing 1:1 lookups of qtype/name values. First %s is replaced by the ASCII representation
+		  of the qtype of the question, the second by the name.
+		</p></dd><dt><span class="term">id-query</span></dt><dd><p>
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where type='%s' and name='%s' and domain_id=%d</strong></span>
+		  Used for doing lookups within a domain. First %s is replaced by the qtype, the %d which should appear after the %s by the numeric 
+		  domain_id.
+		</p></dd><dt><span class="term">any-query</span></dt><dd><p>
+		  For doing ANY queries. Also used internally.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where name='%s'</strong></span>
+		  The %s is replaced by the qname of the question.
+		</p></dd><dt><span class="term">any-id-query</span></dt><dd><p>
+		  For doing ANY queries within a domain. Also used internally.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where name='%s' and domain_id=%d</strong></span>
+		  The %s is replaced by the name of the domain, the %d by the numerical domain id.
+		</p></dd></dl></div><p>
+	</p><p>
+	  The last query is for listing the entire contents of a zone. This is needed when performing a zone transfer, but sometimes also internally:
+	  </p><div class="variablelist"><dl><dt><span class="term">list-query</span></dt><dd><p>
+		  To list an entire zone.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where domain_id=%d</strong></span>
+		</p></dd></dl></div><p>
+	</p></div><div class="sect2" title="5.5. Master/slave queries"><div class="titlepage"><div><div><h3 class="title"><a id="master-slave-queries"></a>5.5. Master/slave queries</h3></div></div></div><p>
+	  Most installations will have zero need to change the following settings, but should the need arise, here they are:
+	  </p><div class="variablelist"><dl><dt><span class="term">master-zone-query</span></dt><dd><p>
+		  Called to determine the master of a zone.
+		  Default: <span class="command"><strong>select master from domains where name='%s' and type='SLAVE'</strong></span>
+		</p></dd><dt><span class="term">info-zone-query</span></dt><dd><p>
+		  Called to retrieve (nearly) all information for a domain:
+		  Default: <span class="command"><strong>select id,name,master,last_check,notified_serial,type from domains where name='%s'</strong></span>
+		</p></dd><dt><span class="term">info-all-slaves-query</span></dt><dd><p>
+		  Called to retrieve all slave domains
+		  Default: <span class="command"><strong>select id,name,master,last_check,type from domains where type='SLAVE'</strong></span>
+		</p></dd><dt><span class="term">supermaster-query</span></dt><dd><p>
+		  Called to determine if a certain host is a supermaster for a certain domain name.
+		  Default: <span class="command"><strong>
+		    select account from supermasters where ip='%s' and nameserver='%s';
+		  </strong></span>
+		</p></dd><dt><span class="term">insert-slave-query</span></dt><dd><p>
+		  Called to add a domain as slave after a supermaster notification.
+		  Default: <span class="command"><strong>
+		    insert into domains (type,name,master,account) values('SLAVE','%s','%s','%s')
+		  </strong></span>
+		</p></dd><dt><span class="term">insert-record-query</span></dt><dd><p>
+		  Called during incoming AXFR.
+		  Default: <span class="command"><strong>
+		    insert into records (content,ttl,prio,type,domain_id,name) values ('%s',%d,%d,'%s',%d,'%s')
+		  </strong></span>
+		</p></dd><dt><span class="term">update-serial-query</span></dt><dd><p>
+		  Called to update the last notified serial of a master domain.
+		  Default: <span class="command"><strong>
+		    update domains set notified_serial=%d where id=%d
+		  </strong></span>
+		</p></dd><dt><span class="term">update-lastcheck-query</span></dt><dd><p>
+		  Called to update the last time a slave domain was checked for freshness.
+		  Default: <span class="command"><strong>
+		    update domains set last_check=%d where id=%d
+		  </strong></span>
+		</p></dd><dt><span class="term">info-all-master-query</span></dt><dd><p>
+		  Called to get data on all domains for which the server is master.
+		  Default: <span class="command"><strong>
+		    select id,name,master,last_check,notified_serial,type from domains where type='MASTER'
+		  </strong></span>
+		</p></dd><dt><span class="term">delete-zone-query</span></dt><dd><p>
+		  Called to delete all records of a zone. Used before an incoming AXFR.
+		  Default: <span class="command"><strong>
+		    delete from records where domain_id=%d
+		  </strong></span>
+		</p></dd></dl></div><p>
+	</p></div><div class="sect2" title="5.6. Fancy records"><div class="titlepage"><div><div><h3 class="title"><a id="id416787"></a>5.6. Fancy records</h3></div></div></div><p>
+	  If PDNS is used with so called 'Fancy Records', the 'MBOXFW' record exists which specifies an email address forwarding instruction, 
+	  wildcard queries are sometimes needed. This is not enabled by default.  A wildcard query is 
+	  an internal concept - it has no relation to *.domain-type lookups. You can safely leave these queries blank.
+	  </p><div class="variablelist"><dl><dt><span class="term">wildcard-query</span></dt><dd><p>
+		  Can be left blank. See above for an explanation.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where type='%s' and name like '%s'</strong></span>
+		</p></dd><dt><span class="term">wildcard-id-query</span></dt><dd><p>
+		  Can be left blank. See above for an explanation.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where type='%s' and name like '%s' and domain_id=%d</strong></span>
+		  Used for doing lookups within a domain.
+		</p></dd><dt><span class="term">wildcard-any-query</span></dt><dd><p>
+		  For doing wildcard ANY queries.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where name like '%s'</strong></span>
+		</p></dd><dt><span class="term">wildcard-any-id-query</span></dt><dd><p>
+		  For doing wildcard ANY queries within a domain.
+		  Default: <span class="command"><strong>select content,ttl,prio,type,domain_id,name from records where name like '%s' and domain_id=%d</strong></span>
+		</p></dd></dl></div><p>
+	</p></div><div class="sect2" title="5.7. Settings and specifying queries"><div class="titlepage"><div><div><h3 class="title"><a id="id416883"></a>5.7. Settings and specifying queries</h3></div></div></div><p>
+	  The queries above are specified in pdns.conf. For example, the basic-query would appear as:
+	  </p><pre class="screen">
+	    gpgsql-basic-query=select content,ttl,prio,type,domain_id,name from records where type='%s' and name='%s'
+	  </pre><p>
+	  When using the Generic PostgreSQL backend, they appear as above. When using the generic MySQL backend, change the
+	  "gpgsql-" prefix to "gmysql-".
+	</p><p>
+	  Queries can span multiple lines, like this:
+	  </p><pre class="screen">
+	    gpgsql-basic-query=select content,ttl,prio,type,domain_id,name from records \
+	    where type='%s' and name='%s'
+	  </pre><p>
+	  Do not wrap statements in quotes as this will not work.
+	  Besides the query related settings, the following configuration
+	  options are available, where one should substitute 'gmysql',
+	  'gpgsql', 'godbc' or 'goracle' for the prefix 'backend'. So
+	  'backend-dbname' can stand for 'gpgsql-dbname' or 'gmysql-dbname'
+	  etc.
+	</p><p>
+          </p><div class="variablelist"><dl><dt><span class="term">backend-dbname</span></dt><dd><p>
+                  Database name to connect to
+                </p></dd><dt><span class="term">backend-host</span></dt><dd><p>
+                  Database host to connect to. WARNING: When specified as a hostname a chicken/egg situation might arise where the database
+		  is needed to resolve the IP address of the database. It is best to supply an IP address of the database here.
+                </p></dd><dt><span class="term">backend-port</span></dt><dd><p>
+                  Database port to connect to. 
+                </p></dd><dt><span class="term">gmysql-socket (only for MySQL!)</span></dt><dd><p>
+		  Filename where the MySQL connection socket resides. Often <code class="filename">/tmp/mysql.sock</code> or <code class="filename">/var/run/mysqld/mysqld.sock</code>. 
+                </p></dd><dt><span class="term">backend-password</span></dt><dd><p>
+                  Password to connect with
+                </p></dd><dt><span class="term">backend-user</span></dt><dd><p>
+                  PgSQL user to connect as
+                </p></dd></dl></div><p>
+	</p></div><div class="sect2" title="5.8. Native operation"><div class="titlepage"><div><div><h3 class="title"><a id="id417017"></a>5.8. Native operation</h3></div></div></div><p>
+	  For native operation, either drop the FOREIGN KEY on the domain_id field, or (recommended), make sure
+	  the <span class="command"><strong>domains</strong></span> table is filled properly. To add a domain, issue the following:
+	  </p><pre class="programlisting">
+	    insert into domains (name,type) values ('powerdns.com','NATIVE');
+	  </pre><p>
+	  The records table can now be filled by with the domain_id set to the id of the domains table row just inserted.
+	</p></div><div class="sect2" title="5.9. Slave operation"><div class="titlepage"><div><div><h3 class="title"><a id="id417041"></a>5.9. Slave operation</h3></div></div></div><p>
+	  The PostgreSQL backend is fully slave capable. To become a slave of the 'powerdns.com' domain, execute this:
+	  </p><pre class="programlisting">
+	    insert into domains (name,master,type) values ('powerdns.com','213.244.168.217','SLAVE');
+	  </pre><p>
+	  And wait a while for PDNS to pick up the addition - which happens within one minute. There is no need to inform PDNS that a new domain
+	  was added.
+	  Typical output is:
+	  </p><pre class="programlisting">
+	    Apr 09 13:34:29 All slave domains are fresh
+	    Apr 09 13:35:29 1 slave domain needs checking
+	    Apr 09 13:35:29 Domain powerdns.com is stale, master serial 1, our serial 0
+	    Apr 09 13:35:30 [gPgSQLBackend] Connected to database
+	    Apr 09 13:35:30 AXFR started for 'powerdns.com'
+	    Apr 09 13:35:30 AXFR done for 'powerdns.com'
+	    Apr 09 13:35:30 [gPgSQLBackend] Closing connection
+	  </pre><p>
+	</p><p>
+	  From now on, PDNS is authoritative for the 'powerdns.com' zone and will respond accordingly for queries within that zone. 
+	</p><p>
+	  Periodically, PDNS schedules checks to see if domains are still fresh. The default <span class="command"><strong>slave-cycle-interval</strong></span> is 60 seconds, large installations may need to raise this value. Once a domain has been checked, it will not be checked before its SOA refresh timer has expired. Domains whose status is unknown get checked every 60 seconds by default.
+	</p></div><div class="sect2" title="5.10. Superslave operation"><div class="titlepage"><div><div><h3 class="title"><a id="id417084"></a>5.10. Superslave operation</h3></div></div></div><p>
+	  To configure a supermaster with IP address 10.0.0.11 which lists this installation as 'autoslave.powerdns.com', issue the following:
+	  </p><pre class="programlisting">
+	    insert into supermasters ('10.0.0.11','autoslave.powerdns.com','internal');
+	  </pre><p>
+	  From now on, valid notifies from 10.0.0.11 that list a NS record containing 'autoslave.powerdns.com' will lead to the
+	  provisioning of a slave domain under the account 'internal'. See <a class="xref" href="slave.html#supermaster" title="2.1. Supermaster automatic provisioning of slaves">Section 2.1, “Supermaster automatic provisioning of slaves”</a> for details.
+	</p></div><div class="sect2" title="5.11. Master operation"><div class="titlepage"><div><div><h3 class="title"><a id="id417108"></a>5.11. Master operation</h3></div></div></div><p>
+	  The PostgreSQL backend is fully master capable with automatic discovery of serial changes. Raising the serial number of a domain
+	  suffices to trigger PDNS to send out notifications. To configure a domain for master operation instead of the default native replication,
+	  issue:
+	  </p><pre class="programlisting">
+	    insert into domains (name,type) values ('powerdns.com','MASTER');
+	  </pre><p>
+	  Make sure that the assigned id in the domains table matches the domain_id field in the records table!
+	</p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="pdnsbackend.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="backends-detail.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="oracle.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">4. MySQL PowerDNS backend </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 6. Oracle backend</td></tr></table></div></body></html>

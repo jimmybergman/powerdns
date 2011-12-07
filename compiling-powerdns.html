@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Appendix D. Compiling PowerDNS</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="master-backends.html" title="5. Read/write master-capable backends" /><link rel="next" href="on-windows.html" title="2. Compiling PowerDNS on Windows" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Appendix D. Compiling PowerDNS</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="master-backends.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="on-windows.html">Next</a></td></tr></table><hr /></div><div class="appendix" title="Appendix D. Compiling PowerDNS"><div class="titlepage"><div><div><h2 class="title"><a id="compiling-powerdns"></a>Appendix D. Compiling PowerDNS</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="compiling-powerdns.html#on-unix">1. Compiling PowerDNS on Unix</a></span></dt><dd><dl><dt><span class="sect2"><a href="compiling-powerdns.html#unix-aix">1.1. AIX</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-freebsd">1.2. FreeBSD</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-linux">1.3. Linux</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-macosx">1.4. MacOS X</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-openbsd">1.5. OpenBSD</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-solaris">1.6. Solaris</a></span></dt></dl></dd><dt><span class="sect1"><a href="on-windows.html">2. Compiling PowerDNS on Windows</a></span></dt><dd><dl><dt><span class="sect2"><a href="on-windows.html#id422859">2.1. Assumptions</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id422953">2.2. Prequisites</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423062">2.3. Nullsoft Installer</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423143">2.4. Setting up the build-environment</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423529">2.5. Compilation</a></span></dt><dt><span class="sect2"><a href="on-windows.html#id423645">2.6. Miscellaneous</a></span></dt></dl></dd></dl></div><div class="sect1" title="1. Compiling PowerDNS on Unix"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="on-unix"></a>1. Compiling PowerDNS on Unix</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="compiling-powerdns.html#unix-aix">1.1. AIX</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-freebsd">1.2. FreeBSD</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-linux">1.3. Linux</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-macosx">1.4. MacOS X</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-openbsd">1.5. OpenBSD</a></span></dt><dt><span class="sect2"><a href="compiling-powerdns.html#unix-solaris">1.6. Solaris</a></span></dt></dl></div><p>
+	</p><div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="note.png" /></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>
+	    For now, see <a class="ulink" href="http://wiki.powerdns.com/" target="_top">the Open Source PowerDNS site</a>. 
+	    <span class="command"><strong>./configure ; make ; make install</strong></span> will do The Right Thing for most people.
+	  </p></td></tr></table></div><p>
+      </p><p>
+	PowerDNS can becompiled with modules built in, or with modules designed to be loaded at runtime. All that is configured
+	before compiling using the well known autoconf/automake system.
+      </p><p>
+	To compile in modules, specify them as <span class="command"><strong>--with-modules="mod1 mod2 mod3"</strong></span>, substituting the desired module names.
+	Each backend has a module name in the table at the beginning of its section.
+      </p><p>
+	To compile a module for inclusion at runtime, which is great if you are a unix vendor, use <span class="command"><strong>--with-dynmodules="mod1 mod2 mod3"</strong></span>.
+	These modules then end up as .so files in the compiled libdir. 
+      </p><p>
+        Starting with version 2.9.18, PowerDNS requires 'Boost' to compile, it is available for most operating systems. Otherwise, see <a class="ulink" href="http://www.boost.org" target="_top">the Boost 
+	website</a>.
+      </p><p>
+	If your operating system does not have a Boost package, you don't need to compile all of boost just for PowerDNS.
+	PowerDNS only uses Boost include files, so there is no need to install all of boost. Just untar the Boost distribution file and 
+	point instruct ./configure to find it, perhaps like this:
+	</p><pre class="screen">
+	$ CXXFLAGS=-I/home/bert/download/boost_1_33_0 ./configure ...
+    </pre><p>
+    </p><div class="sect2" title="1.1. AIX"><div class="titlepage"><div><div><h3 class="title"><a id="unix-aix"></a>1.1. AIX</h3></div></div></div><p>
+	  Known to compile with gcc, but only since 2.9.8. AIX lacks POSIX semaphores so they need to be emulated, as with MacOS X.
+	</p></div><div class="sect2" title="1.2. FreeBSD"><div class="titlepage"><div><div><h3 class="title"><a id="unix-freebsd"></a>1.2. FreeBSD</h3></div></div></div><p>
+	  Works fine, but use gmake. Pipe backend is currently broken, for reasons, see <a class="xref" href="backends-detail.html#pipebackend" title="1. PipeBackend">Section 1, “PipeBackend”</a>. Due to the threading model
+	  of FreeBSD, PowerDNS does not benefit from additional CPUs on the system.
+	</p><p>
+	  The FreeBSD Boost include files are installed in <code class="filename">/usr/local/include</code>, so prefix <span class="command"><strong>CXXFLAGS=-I/usr/local/include</strong></span>
+	  to your <span class="command"><strong>./configure</strong></span> invocation.
+	</p></div><div class="sect2" title="1.3. Linux"><div class="titlepage"><div><div><h3 class="title"><a id="unix-linux"></a>1.3. Linux</h3></div></div></div><p>
+	  Linux is probably the best supported platform as most of the main coders are Linux users. The static DEB distribution is known to have 
+	  problems on Debian 'Sid', but that doesn't matter as PowerDNS is a native part of Debian 'Sid'. Just apt-get!
+	</p></div><div class="sect2" title="1.4. MacOS X"><div class="titlepage"><div><div><h3 class="title"><a id="unix-macosx"></a>1.4. MacOS X</h3></div></div></div><p>
+	  Did compile at one point but maintenance has lapsed. Let us know if you can provide us with a login on MacOS X or if you want to help.
+	</p></div><div class="sect2" title="1.5. OpenBSD"><div class="titlepage"><div><div><h3 class="title"><a id="unix-openbsd"></a>1.5. OpenBSD</h3></div></div></div><p>
+	  Compiles but then does not work very well. We hear that it may work with more recent versions of gcc, please let us know on 
+	  <code class="email">&lt;<a class="email" href="mailto:pdns-dev@mailman.powerdns.com">pdns-dev@mailman.powerdns.com</a>&gt;</code>.
+	</p></div><div class="sect2" title="1.6. Solaris"><div class="titlepage"><div><div><h3 class="title"><a id="unix-solaris"></a>1.6. Solaris</h3></div></div></div><p>
+	  Solaris 7 is supported, but only just. AAAA records do not work on Solaris 7. Solaris 8 and 9 work fine. The 'Sunpro' compiler
+	  has not been tried but is reported to be lacking large parts of the Standard Template Library, which PowerDNS relies on heavily. 
+	  Use gcc and gmake (if available). Regular Solaris make has some issues with some PowerDNS Makefile constructs.
+	</p><p>
+	  When compiling, make sure that you have <code class="filename">/usr/ccs/bin</code> in your path. Furthermore, with some versions of MySQL,
+	  you may have to add "LDFLAGS=-lz" before <span class="command"><strong>./configure</strong></span>.
+	</p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="master-backends.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="on-windows.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">5. Read/write master-capable backends </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 2. Compiling PowerDNS on Windows</td></tr></table></div></body></html>

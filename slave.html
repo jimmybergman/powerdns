@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. Slave operation</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="replication.html" title="Chapter 17. Master/Slave operation &amp; replication" /><link rel="prev" href="replication.html" title="Chapter 17. Master/Slave operation &amp; replication" /><link rel="next" href="master.html" title="3. Master operation" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. Slave operation</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="replication.html">Prev</a> </td><th width="60%" align="center">Chapter 17. Master/Slave operation &amp; replication</th><td width="20%" align="right"> <a accesskey="n" href="master.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. Slave operation"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="slave"></a>2. Slave operation</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="slave.html#supermaster">2.1. Supermaster automatic provisioning of slaves</a></span></dt><dt><span class="sect2"><a href="slave.html#id411716">2.2. Modifying a slave zone using a script</a></span></dt></dl></div><p>
+	On launch, PDNS requests from all backends a list of domains which have not been checked recently for changes. This should happen every 
+	'<span class="command"><strong>refresh</strong></span>' seconds, as specified in the SOA record. All domains that are unfresh are then checked for changes over at their
+	master. If the <a class="link" href="types.html#soa-type">SOA</a> serial number there is higher, the domain is retrieved and inserted into the database. In 
+	any case, after the check the domain is declared 'fresh', and will only be checked again after '<span class="command"><strong>refresh</strong></span>' seconds have passed.
+      </p><p>
+	</p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+	    Slave support is OFF by default, turn it on by adding <span class="command"><strong>slave</strong></span> to the configuration. The same 
+	    holds for master operation. Both can be on simultaneously.
+	  </p></td></tr></table></div><p>
+      </p><p>
+	PDNS also reacts to notifies by immediately checking if the zone has updated and if so, retransfering it.
+      </p><p>
+	All backends which implement this feature must make sure that they can handle transactions so as to not leave the zone in a half updated state. 
+	MySQL configured with either BerkeleyDB or InnoDB meets this requirement, as do PostgreSQL and Oracle. The Bindbackend implements transaction
+	semantics by renaming files if and only if they have been retrieved completely and parsed correctly.
+      </p><p>
+	Slave operation can also be programmed using several pdns_control commands, see <a class="xref" href="pdns-internals.html#pdnscontrol" title="1.1. pdns_control">Section 1.1, “pdns_control”</a>. The 'retrieve' command
+	is especially useful as it triggers an immediate retrieval of the zone from the configured master.
+      </p><p>
+	Since 2.9.21, PowerDNS supports multiple masters. For the BIND backend, the native BIND configuration language suffices to specify
+	multiple masters, for SQL based backends, list all master servers separated by commas in the 'master' field of the domains table.
+      </p><div class="sect2" title="2.1. Supermaster automatic provisioning of slaves"><div class="titlepage"><div><div><h3 class="title"><a id="supermaster"></a>2.1. Supermaster automatic provisioning of slaves</h3></div></div></div><p>
+	  PDNS can recognize so called 'supermasters'. A supermaster is a host which is master for domains and for which we are to be a slave. When
+	  a master (re)loads a domain, it sends out a notification to its slaves. Normally, such a notification is only accepted if PDNS already 
+	  knows that it is a slave for a domain.
+	</p><p>
+	  However, a notification from a supermaster carries more persuasion. When PDNS determines that a notification comes from a supermaster and it 
+	  is bonafide, PDNS can provision the domain automatically, and configure itself as a slave for that zone.
+	</p><p>
+	  Before a supermaster notification succeeds, the following conditions must be met:
+	  </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+		The supermaster must carry a SOA record for the notified domain
+	    </p></li><li class="listitem"><p>
+		The supermaster IP must be present in the 'supermaster' table
+	    </p></li><li class="listitem"><p>
+		The set of NS records for the domain, as retrieved by the slave from the supermaster, must include the name that 
+		goes with the IP address in the supermaster table
+	    </p></li></ul></div><p>
+	</p><p>
+	  So, to benefit from this feature, a backend needs to know about the IP address of the supermaster, and how PDNS will be listed in the set of
+	  NS records remotely, and the 'account' name of your supermaster. There is no need to fill the account name out but it does help keep track of
+	  where a domain comes from.
+	</p></div><div class="sect2" title="2.2. Modifying a slave zone using a script"><div class="titlepage"><div><div><h3 class="title"><a id="id411716"></a>2.2. Modifying a slave zone using a script</h3></div></div></div><p>
+	As of version 3.0, the PowerDNS Authoritative Server can invoke a Lua script on an incoming AXFR zone transfer. 
+	The user-defined function axfrfilter within your script is invoked for each resource record read during the transfer, 
+	and the outcome of the function defines what PowerDNS does with the records.
+      </p><p>(idea and documentation contributed by Jan-Piet Mens)</p><p>
+	What you can accomplish using a Lua script:
+	</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>Ensure consistent values on SOA</p></li><li class="listitem"><p>Change incoming SOA serial number to a YYYYMMDDnn format</p></li><li class="listitem"><p>Ensure consistent NS RRset</p></li><li class="listitem"><p>Timestamp the zone transfer with a TXT record</p></li></ul></div><p>
+      </p><p>
+To enable a Lua script for a particular slave zone, determine the domain_id for the zone from the `domains` table, and add a row to the `domainmetadata` table for the domain. Supposing the domain we want has an `id` of 3, the following SQL statement will enable the Lua script `my.lua` for that domain:
+</p><pre class="programlisting">
+	INSERT INTO domainmetadata (domain_id, kind, content) VALUES (3, "LUA-AXFR-SCRIPT", "/lua/my.lua");
+</pre><p>
+      </p><p>
+	  The Lua script must both exist and be syntactically correct; if not, the zone transfer is not performed.
+      </p><p>Your Lua functions have access to the query codes through a pre-defined Lua table called `pdns`. 
+      For example if you want to check for a CNAME record you can either compare `qtype` to the numeric constant 5 or the value 
+      `pdns.CNAME` -- they are equivalent.</p><p>
+	If your function decides to handle a resource record it must return a result code of 0 together with a Lua table 
+	containing one or more replacement records to be stored in the back-end database. If, on the other hand, your 
+	function decides not to modify a record, it must return -1 and an empty table indicating that PowerDNS should 
+	handle the incoming record as normal.
+      </p><p>
+	Consider the following simple example:
+</p><pre class="programlisting">
+	function axfrfilter(remoteip, zone, qname, qtype, ttl, prio, content)
+
+	   -- Replace each HINFO records with this TXT
+	   if qtype == pdns.HINFO then
+	      resp = {}
+	      resp[1] = {    qname   = qname,
+		    qtype   = pdns.TXT,
+		    ttl   = 99,
+		    content   = "Hello Ahu!"
+		 }
+	      return 0, resp
+	   end
+
+	   -- Grab each _tstamp TXT record and add a time stamp
+	   if qtype == pdns.TXT and string.starts(qname, "_tstamp.") then
+	      resp = {}
+	      resp[1] = {
+		    qname   = qname,
+		    qtype   = qtype,
+		    ttl   = ttl,
+		    content   = os.date("Ver %Y%m%d-%H:%M")
+		 }
+	      return 0, resp
+	   end
+
+	   resp = {}
+	   return -1, resp
+	end
+
+	function string.starts(s, start)
+	   return s.sub(s, 1, s.len(start)) == start
+	end
+</pre><p>
+    Upon an incoming AXFR, PowerDNS calls our `axfrfilter` function for each record. All HINFO records 
+    are replaced by a TXT record with a TTL of 99 seconds and the specified string. TXT Records with 
+    names starting with `_tstamp.` get their value (_rdata_) set to the current time stamp. 
+    All other records are unhandled.
+      </p></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="replication.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="replication.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="master.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 17. Master/Slave operation &amp; replication </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 3. Master operation</td></tr></table></div></body></html>

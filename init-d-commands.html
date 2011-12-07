@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>2. Via init.d commands</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="monitoring.html" title="Chapter 6. Logging &amp; Monitoring Authoritative Server performance" /><link rel="prev" href="monitoring.html" title="Chapter 6. Logging &amp; Monitoring Authoritative Server performance" /><link rel="next" href="syslog.html" title="3. Operational logging using syslog" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">2. Via init.d commands</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="monitoring.html">Prev</a> </td><th width="60%" align="center">Chapter 6. Logging &amp; Monitoring Authoritative Server performance</th><td width="20%" align="right"> <a accesskey="n" href="syslog.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="2. Via init.d commands"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="init-d-commands"></a>2. Via init.d commands</h2></div></div></div><p>
+	As mentioned before, the init.d commands <span class="command"><strong>dump</strong></span>, <span class="command"><strong>show</strong></span> and 
+	<span class="command"><strong>mrtg</strong></span> fetch data from a running PDNS process. Especially <span class="command"><strong>mrtg</strong></span> is powerful -
+	it outputs data in a format that is ready for processing by the MRTG graphing tool. 
+      </p><p>
+	MRTG can make insightful graphics on the performance of your nameserver, enabling the operator to easily spot trends.
+	MRTG can be found on 
+	<a class="ulink" href="http://people.ee.ethz.ch/~oetiker/webtools/mrtg/mrtg.html" target="_top">
+	  http://people.ee.ethz.ch/~oetiker/webtools/mrtg/mrtg.html
+	</a>
+      </p><p>
+	A sample mrtg.conf:
+	</p><pre class="screen">
+Interval: 5
+WorkDir: /var/www/mrtg
+WriteExpires: yes
+Options[_]: growright,nopercent
+XSize[_]: 600
+
+#---------------------------------------------------------------
+
+Target[udp-queries]: `/etc/init.d/pdns mrtg udp-queries udp-answers`
+Options[udp-queries]: growright,nopercent,perminute
+MaxBytes[udp-queries]: 600000
+AbsMax[udp-queries]: 600000
+Title[udp-queries]: Queries per minute
+PageTop[udp-queries]: &lt;H2&gt;Queries per minute&lt;/H2&gt;
+WithPeak[udp-queries]: ymwd
+YLegend[udp-queries]: queries/minute
+ShortLegend[udp-queries]: q/m
+LegendI[udp-queries]: udp-questions
+LegendO[udp-queries]: udp-answers
+
+
+Target[perc-failed]: `/etc/init.d/pdns mrtg udp-queries udp-answers`
+Options[perc-failed]: growright,dorelpercent,perminute
+MaxBytes[perc-failed]: 600000
+AbsMax[perc-failed]: 600000
+Title[perc-failed]: Queries per minute, with percentage success
+PageTop[perc-failed]: &lt;H2&gt;Queries per minute, with percentage success&lt;/H2&gt;
+WithPeak[perc-failed]: ymwd
+YLegend[perc-failed]: queries/minute
+ShortLegend[perc-failed]: q/m
+LegendI[perc-failed]: udp-questions
+LegendO[perc-failed]: udp-answers
+
+
+Target[packetcache-rate]: `/etc/init.d/pdns mrtg packetcache-hit udp-queries`
+Options[packetcache-rate]: growright,dorelpercent,perminute
+Title[packetcache-rate]: packetcache hitrate
+MaxBytes[packetcache-rate]: 600000
+AbsMax[packetcache-rate]: 600000
+PageTop[packetcache-rate]: &lt;H2&gt;packetcache hitrate&lt;/H2&gt;
+WithPeak[packetcache-rate]: ymwd
+YLegend[packetcache-rate]: queries/minute
+ShortLegend[packetcache-rate]: q/m
+LegendO[packetcache-rate]: total
+LegendI[packetcache-rate]: hit
+
+Target[packetcache-missrate]: `/etc/init.d/pdns mrtg packetcache-miss udp-queries`
+Options[packetcache-missrate]: growright,dorelpercent,perminute
+Title[packetcache-missrate]: packetcache MISSrate
+MaxBytes[packetcache-missrate]: 600000
+AbsMax[packetcache-missrate]: 600000
+PageTop[packetcache-missrate]: &lt;H2&gt;packetcache MISSrate&lt;/H2&gt;
+WithPeak[packetcache-missrate]: ymwd
+YLegend[packetcache-missrate]: queries/minute
+ShortLegend[packetcache-missrate]: q/m
+LegendO[packetcache-missrate]: total
+LegendI[packetcache-missrate]: MISS
+
+Target[latency]: `/etc/init.d/pdns mrtg latency`
+Options[latency]: growright,nopercent,gauge
+MaxBytes[latency]: 600000
+AbsMax[latency]: 600000
+Title[latency]: Query/answer latency
+PageTop[latency]: &lt;H2&gt;Query/answer latency&lt;/H2&gt;
+WithPeak[latency]: ymwd
+YLegend[latency]: usec
+ShortLegend[latency]: usec
+LegendO[latency]: latency
+LegendI[latency]: latency
+
+Target[recursing]: `/etc/init.d/pdns mrtg recursing-questions recursing-answers`
+Options[recursing]: growright,nopercent,gauge
+MaxBytes[recursing]: 600000
+AbsMax[recursing]: 600000
+Title[recursing]: Recursive questions/answers
+PageTop[recursing]: &lt;H2&gt;Recursing questions/answers&lt;/H2&gt;
+WithPeak[recursing]: ymwd
+YLegend[recursing]: queries/minute
+ShortLegend[recursing]: q/m
+LegendO[recursing]: recursing-questions
+LegendI[recursing]: recursing-answers
+
+	</pre><p>
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="monitoring.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="monitoring.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="syslog.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 6. Logging &amp; Monitoring Authoritative Server performance </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 3. Operational logging using syslog</td></tr></table></div></body></html>

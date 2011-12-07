@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Chapter 11. Notes on upgrading</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="index.html" title="PowerDNS manual" /><link rel="prev" href="migration.html" title="Chapter 10. Migrating to PowerDNS" /><link rel="next" href="powerdnssec-auth.html" title="Chapter 12. Serving authoritative DNSSEC data" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Chapter 11. Notes on upgrading</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="migration.html">Prev</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="powerdnssec-auth.html">Next</a></td></tr></table><hr /></div><div class="chapter" title="Chapter 11. Notes on upgrading"><div class="titlepage"><div><div><h2 class="title"><a id="upgrades"></a>Chapter 11. Notes on upgrading</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="sect1"><a href="upgrades.html#from2.9to3.0">1. From PowerDNS Authoritative Server 2.9.x to 3.0</a></span></dt><dd><dl><dt><span class="sect2"><a href="upgrades.html#id406486">1.1. Frequently Asked Questions about 3.0</a></span></dt></dl></dd></dl></div><div class="sect1" title="1. From PowerDNS Authoritative Server 2.9.x to 3.0"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="from2.9to3.0"></a>1. From PowerDNS Authoritative Server 2.9.x to 3.0</h2></div></div></div><div class="toc"><dl><dt><span class="sect2"><a href="upgrades.html#id406486">1.1. Frequently Asked Questions about 3.0</a></span></dt></dl></div><p>
+    The 3.0 release of the PowerDNS Authoritative Server is significantly different from previous 2.9.x versions. This section lists
+    important things to be aware of.
+  </p><div class="warning" title="Warning" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Warning"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="warning.png" /></td><th align="left">Warning</th></tr><tr><td align="left" valign="top"><p>
+    Version 3.0 of the PowerDNS Authoritative Server is the biggest change in PowerDNS history. In some senses, this means that
+    it behaves somewhat like a '1.0' version. We advise operators to carefully perform the upgrade process from 2.9.x, and
+    if possible test on a copy of the database beforehand. 
+  </p><p>
+    In addition, it may also be useful to have a support agreement in place during such upgrades.
+    For first class and rapid support, please contact powerdns-support@netherlabs.nl, or see <a class="ulink" href="www.powerdns.com" target="_top">www.powerdns.com</a>. Alternatively,
+    the <a class="ulink" href="http://wiki.powerdns.com" target="_top">PowerDNS Community</a> can be very helpful too.
+  </p></td></tr></table></div><p>
+    With similar settings, version 3.0 will most likely use a lot more memory than 2.9. This is due to the new DNSSEC key &amp; signature caches, but 
+    also because the database query cache will now store multiple row answers, which it did not do previously. Memory use can be brought down again
+    by tuning the cache-ttl settings.
+  </p><p>
+    Performance may be up, or it may be down. We appreciate that this is spotty guidance, but depending on your setup, lookups may be a lot faster or a
+    lot slower. The improved database cache may prove to be a big benefit, and improve performance dramatically. This could be offset by a near 
+    duplication of database queries needed because of more strict interpretation of DNS standards.
+  </p><p>
+    PowerDNS Authoritative Server 3.0 contains a completely renewed implementation of the core DNS 'Algorithm', loosely specified in RFC 1034.
+    As stated above, our new implementation is a lot closer to the original standard. This may mean that version 3.0 may interpret the contents
+    of your database differently from how 2.9.x interpreted them. For fully standards confirming zones, there should not be a problem, 
+    but if zones were misconfigured (no SOA record, for example), things will be different.
+  </p><p>
+    When compiling version 3.0, there are now more dependencies than there used to be. Whereas previously, only Boost header files were needed,
+    PowerDNS now needs a number of Boost libraries to be installed (like boost-program-options, boost-serialization). In addition, for now Lua 5.1 is 
+    a dependency.
+  </p><p>
+    PowerDNS Authoritative Server 3.0 comes with DNSSEC support, but this has required big changes to database schemas.
+    Each backend lists the changes required. To facilitate a smooth upgrade, the old, non-DNSSEC schema is used by default.
+    Features like per-domain metadata, TSIG and DNSSEC itself however need the new schema. Consult your backend documentation
+    for the correct 'alter table' statements. Afterwards, set the relevant '-dnssec' setting for your backend (for example: gmysql-dnssec).
+  </p><p>
+    In version 3.0, "Fancy Records", like URL, CURL and MBOXFW are no longer supported. Support may come back in later versions.
+    In addition, the LDAP Backend has moved to 'unmaintained' status. 
+  </p><div class="sect2" title="1.1. Frequently Asked Questions about 3.0"><div class="titlepage"><div><div><h3 class="title"><a id="id406486"></a>1.1. Frequently Asked Questions about 3.0</h3></div></div></div><p>
+    </p><div class="variablelist"><dl><dt><span class="term">Q: Can 2.9.x versions read the 3.0 DNSSEC database schema?</span></dt><dd><p>
+	      A: Yes, every database can be altered to the new schema without impact on 2.9. The new fields and tables
+	      are ignored.
+	    </p></dd><dt><span class="term">Q: Can 3.x versions read the 2.9 pre-DNSSEC database schema?</span></dt><dd><p>
+	      A: Yes, as long as the relevant '-dnssec' setting is not enabled. These settings
+	      are typically called 'gmysql-dnssec', 'gpgsql-dnssec', 'gsqlite3-dnssec'. If this setting IS
+	      enabled, 3.x expects the new schema to be in place.
+	    </p></dd><dt><span class="term">Q: If I run 3.0 with the new schema, and I have set '-dnssec', do I need to rectify my zones?</span></dt><dd><p>
+	      A: Yes. If the '-dnssec' setting is enabled, PowerDNS expects the 'auth' field to be filled out correctly.
+	      When slaving zones this happens automatically. For other zones, run 'pdnssec rectify-zone zonename'. Even if
+	      a zone is not DNSSEC secured, as long as the new schema is in place, the zone must be rectified (or at least
+	      have the 'auth' field set correctly).
+	    </p></dd><dt><span class="term">Q: I want to fill out the 'auth' and 'ordername' fields directly, how do I do this?</span></dt><dd><p>
+	      A: The 'auth' field should be '1' or 'true' for all records that are within your zone. For a zone without delegations,
+	      this means 'auth' should always be set. If you have delegations, both the NS records for that delegation and possible glue
+	      records for it should not have 'auth' set.
+	    </p><p>
+	      For more details on 'auth' and 'ordername', please see <a class="xref" href="dnssec-modes.html#dnssec-direct-database" title="8.4. Rules for filling out fields in database backends">Section 8.4, “Rules for filling out fields in database backends”</a>.
+	    </p></dd><dt><span class="term">Q: If I don't update to the new DNSSEC schema, will 3.0 give identical answers as 2.9.x?</span></dt><dd><p>
+	      A: Not always. The core DNS logic of 3.0 was changed, so even if no changes are made to the database,
+	      you may get different answers. This might happen for zones without SOA records for example, which used
+	      to (more or less) work. An upgrade from 2.9.x to 3.0 should always be monitored carefully.
+	    </p></dd></dl></div><p>
+    </p></div></div></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="migration.html">Prev</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="powerdnssec-auth.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter 10. Migrating to PowerDNS </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> Chapter 12. Serving authoritative DNSSEC data</td></tr></table></div></body></html>

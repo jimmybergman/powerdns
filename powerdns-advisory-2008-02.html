@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>8. PowerDNS Security Advisory 2008-02: By not responding to certain queries, domains become easier to spoof</title><link rel="stylesheet" href="docbook.css" type="text/css" /><meta name="generator" content="DocBook XSL Stylesheets V1.75.2" /><link rel="home" href="index.html" title="PowerDNS manual" /><link rel="up" href="powerdns.html" title="Chapter 1. The PowerDNS dynamic nameserver" /><link rel="prev" href="powerdns-advisory-2008-01.html" title="7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor" /><link rel="next" href="powerdns-advisory-2008-03.html" title="9. PowerDNS Security Advisory 2008-02: Some PowerDNS Configurations can be forced to restart remotely" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">8. PowerDNS Security Advisory 2008-02: By not responding to certain queries, domains become easier to spoof</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="powerdns-advisory-2008-01.html">Prev</a> </td><th width="60%" align="center">Chapter 1. The PowerDNS dynamic nameserver</th><td width="20%" align="right"> <a accesskey="n" href="powerdns-advisory-2008-03.html">Next</a></td></tr></table><hr /></div><div class="sect1" title="8. PowerDNS Security Advisory 2008-02: By not responding to certain queries, domains become easier to spoof"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="powerdns-advisory-2008-02"></a>8. PowerDNS Security Advisory 2008-02: By not responding to certain queries, domains become easier to spoof</h2></div></div></div><p>
+	</p><div class="table"><a id="id403466"></a><p class="title"><b>Table 1.4. PowerDNS Security Advisory</b></p><div class="table-contents"><table summary="PowerDNS Security Advisory" border="1"><colgroup><col /><col /></colgroup><tbody><tr><td>
+		  CVE
+		</td><td>
+		  CVE-2008-3337
+		</td></tr><tr><td>
+		  Date
+		</td><td>
+		  6th of August 2008
+		</td></tr><tr><td>
+		  Affects
+		</td><td>
+		  PowerDNS Authoritative Server 2.9.21 and earlier
+		</td></tr><tr><td>
+		  Not affected
+		</td><td>
+		  No versions of the PowerDNS Recursor ('pdns_recursor') are affected.
+		</td></tr><tr><td>
+		  Severity 
+		</td><td>
+		  Moderate
+		</td></tr><tr><td>
+		  Impact
+		</td><td>
+		  Data manipulation; client redirection
+		</td></tr><tr><td>
+		  Exploit
+		</td><td>
+		  Domains with servers that drop certain queries can be spoofed using simpler measures than would 
+		  usually be required
+		</td></tr><tr><td>
+		  Solution
+		</td><td>
+		  Upgrade to PowerDNS Authoritative Server 2.9.21.1, or apply <a class="ulink" href="http://wiki.powerdns.com/projects/trac/changeset/1239" target="_top">commit 1239</a>. 
+		</td></tr><tr><td>
+		  Workaround
+		</td><td>
+		  None known. 
+		</td></tr></tbody></table></div></div><p><br class="table-break" />
+      </p><p>
+	Brian J. Dowling of Simplicity Communications has discovered a security implication of 
+	the previous PowerDNS behaviour to drop queries it considers malformed. We are grateful that
+	Brian notified us quickly about this problem.
+      </p><p>
+	The implication is that while the PowerDNS Authoritative server itself does not face a security risk because
+	of dropping these malformed queries, other resolving nameservers run a higher risk of accepting spoofed
+	answers for domains being hosted by PowerDNS Authoritative Servers before 2.9.21.1.
+      </p><p>
+	While the dropping of queries does not aid sophisticated spoofing attempts, it does facilitate simpler attacks.
+      </p></div><div class="navfooter"><hr /><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="powerdns-advisory-2008-01.html">Prev</a> </td><td width="20%" align="center"><a accesskey="u" href="powerdns.html">Up</a></td><td width="40%" align="right"> <a accesskey="n" href="powerdns-advisory-2008-03.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">7. PowerDNS Security Advisory 2008-01: System random generator can be predicted, leading to the potential to 'spoof' PowerDNS Recursor </td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right" valign="top"> 9. PowerDNS Security Advisory 2008-02: Some PowerDNS Configurations can be forced to restart remotely</td></tr></table></div></body></html>
