@@ -1,0 +1,10 @@
+diff
+real_result
+/dnssec-validation-failures
+/skipped_tests
+/trustedkeys
+/test-results
+/pdns.pid
+/passed_tests
+/failed_tests
+/powerdns.sqlite3
