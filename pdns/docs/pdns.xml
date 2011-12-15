@@ -17033,10 +17033,10 @@ create unique index namealgoindex on tsigkeys(name, algorithm);
 	{
 	public:
 
-	virtual bool lookup(const QType &amp;qtype, const string &amp;qdomain, DNSPacket *pkt_p=0, int zoneId=-1)=0; 
-	virtual bool list(int domain_id)=0; 
+	virtual void lookup(const QType &amp;qtype, const string &amp;qdomain, DNSPacket *pkt_p=0, int zoneId=-1)=0;
+	virtual bool list(const string &amp;target, int domain_id)=0;
 	virtual bool get(DNSResourceRecord &amp;r)=0;
-	virtual bool getSOA(const string &amp;name, SOAData &amp;soadata);
+	virtual bool getSOA(const string &amp;name, SOAData &amp;soadata, DNSPacket *p=0);
 	};
 	</programlisting>
       
@@ -17106,7 +17106,8 @@ create unique index namealgoindex on tsigkeys(name, algorithm);
 class RandomBackend : public DNSBackend
 {
 public:
-  bool list(int id) {
+  bool list(const string &amp;target, int id)
+  {
     return false; // we don't support AXFR
   }
     
@@ -17291,7 +17292,7 @@ static RandomLoader randomloader;
 		  that the backend considers itself broken - not that no answers are available for a question.
 		</para>
 		<para>
-		  It is legal to return here, and have the first call to <function>get()</function> return false. This is interpreted as 'no data'
+		  It is legal to return here, and have the first call to <function>get()</function> return false. This is interpreted as 'no data'.
 		</para>
 	      </listitem>
 	    </varlistentry>
