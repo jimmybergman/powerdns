@@ -79,12 +79,11 @@ public:
  
   void soaMagic(DNSResourceRecord *rr);
   DNSBackend *getBackend();
-
+  int trySuperMaster(DNSPacket *p, bool override=false);
 
 private:
   int processNotify(DNSPacket *);
   void addRootReferral(DNSPacket *r);
-  int trySuperMaster(DNSPacket *p);
   int makeCanonic(DNSPacket *p, DNSPacket *r, string &target);
   int doWildcardRecords(DNSPacket *p, DNSPacket *r, string &target);
   int findMboxFW(DNSPacket *p, DNSPacket *r, string &target);
