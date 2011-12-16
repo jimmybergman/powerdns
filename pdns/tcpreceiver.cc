@@ -283,9 +283,15 @@ void *TCPNameserver::doConnection(void *data)
 
       shared_ptr<DNSPacket> reply; 
       shared_ptr<DNSPacket> cached= shared_ptr<DNSPacket>(new DNSPacket);
-      if(logDNSQueries) 
-        L << Logger::Notice<<"TCP Remote "<< packet->d_remote.toString() <<" wants '" << packet->qdomain<<"|"<<packet->qtype.getName() << 
+      if(logDNSQueries)  {
+        string remote;
+        if(packet->hasEDNSSubnet()) 
+          remote = packet->getRemote() + "<-" + packet->getRealRemote().toString();
+        else
+          remote = packet->getRemote();
+        L << Logger::Notice<<"TCP Remote "<< remote <<" wants '" << packet->qdomain<<"|"<<packet->qtype.getName() << 
         "', do = " <<packet->d_dnssecOk <<", bufsize = "<< packet->getMaxReplyLen()<<": ";
+      }
 
 
       if(!packet->d.rd && packet->couldBeCached() && PC.get(packet.get(), cached.get())) { // short circuit - does the PacketCache recognize this question?
@@ -561,8 +567,11 @@ int TCPNameserver::doAXFR(const string &target, shared_ptr<DNSPacket> q, int out
   DNSResourceRecord soa = makeDNSRRFromSOAData(sd);
   outpacket->addRecord(soa);
   editSOA(dk, sd.qname, outpacket.get());
-  if(securedZone)
-    addRRSigs(dk, signatureDB, target, outpacket->getRRS());
+  if(securedZone) {
+    set<string, CIStringCompare> authSet;
+    authSet.insert(target);
+    addRRSigs(dk, signatureDB, authSet, outpacket->getRRS());
+  }
   
   if(!tsigkeyname.empty())
     outpacket->setTSIGDetails(trc, tsigkeyname, tsigsecret, trc.d_mac); // first answer is 'normal'
