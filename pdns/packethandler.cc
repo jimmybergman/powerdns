@@ -816,7 +816,7 @@ How MySQLBackend would implement this:
 
 int PacketHandler::trySuperMaster(DNSPacket *p, bool override)
 {
-  if(!p->d_tcp && !override) // queue it if it was UDP, unless overriden
+  if(!p->d_tcp && !override) // queue it if it was UDP, unless overridden
   {
     Communicator.addTrySuperMasterRequest(p);
     return 0;
