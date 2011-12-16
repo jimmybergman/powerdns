@@ -79,9 +79,11 @@ public:
  
   void soaMagic(DNSResourceRecord *rr);
   DNSBackend *getBackend();
-  int trySuperMaster(DNSPacket *p, bool override=false);
+
+  int trySuperMasterSynchronous(DNSPacket *p);
 
 private:
+  int trySuperMaster(DNSPacket *p);
   int processNotify(DNSPacket *);
   void addRootReferral(DNSPacket *r);
   int makeCanonic(DNSPacket *p, DNSPacket *r, string &target);

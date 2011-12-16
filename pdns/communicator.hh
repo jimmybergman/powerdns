@@ -194,7 +194,7 @@ private:
   NotificationQueue d_nq;
   bool d_masterschanged, d_slaveschanged;
   set<DomainInfo> d_tocheck;
-  vector<DNSPacket> d_totrymaster;
+  vector<DNSPacket> d_potentialsupermasters;
 };
 
 #endif

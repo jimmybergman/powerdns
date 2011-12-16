@@ -317,7 +317,7 @@ void CommunicatorClass::addTrySuperMasterRequest(DNSPacket *p)
 {
   Lock l(&d_lock);
   DNSPacket ours = *p;
-  d_totrymaster.push_back(ours);
+  d_potentialsupermasters.push_back(ours);
   d_any_sem.post(); // kick the loop!
 }
 
@@ -332,13 +332,13 @@ void CommunicatorClass::slaveRefresh(PacketHandler *P)
     Lock l(&d_lock);
     rdomains.insert(rdomains.end(), d_tocheck.begin(), d_tocheck.end());
     d_tocheck.clear();
-    trysuperdomains.insert(trysuperdomains.end(), d_totrymaster.begin(), d_totrymaster.end());
-    d_totrymaster.clear();
+    trysuperdomains.insert(trysuperdomains.end(), d_potentialsupermasters.begin(), d_potentialsupermasters.end());
+    d_potentialsupermasters.clear();
   }
   
   BOOST_FOREACH(DNSPacket& dp, trysuperdomains) {
     int res;
-    res=P->trySuperMaster(&dp, true);
+    res=P->trySuperMasterSynchronous(&dp);
     if(res>=0) {
       DNSPacket *r=dp.replyPacket();
       r->setRcode(res);
