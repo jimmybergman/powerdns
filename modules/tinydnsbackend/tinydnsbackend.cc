@@ -77,7 +77,7 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			cerr<<"value has qtype "<<valtype.getName()<<endl;
 			cerr<<"query has qtype "<<d_qtype.getName()<<endl;
 			char locwild = pr.get8BitInt();
-			if(locwild != '\075')
+			if(locwild != '\075') // TODO: wildcards; TODO: locations
 				goto next;
 			if(d_qtype.getCode()==QType::ANY || valtype==d_qtype)
 			{
@@ -87,8 +87,8 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 				rr.qname = d_qdomain;
 				rr.ttl = pr.get32BitInt();
 
-				uint64_t timestamp = (pr.get32BitInt() << 32) + pr.get32BitInt();
-				if(timestamp)
+				uint64_t timestamp = (pr.get32BitInt() << 32) + pr.get32BitInt(); // TODO: this is actually broken
+				if(timestamp) // TODO: support timestamps?
 					goto next;
 
 				cerr<<"passing to mastermake ["<<makeHexDump(sval)<<"]"<<endl;
