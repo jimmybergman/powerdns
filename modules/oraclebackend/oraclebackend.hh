@@ -66,10 +66,8 @@ public:
   void getUnfreshSlaveInfos(vector<DomainInfo>* domains);
   void getUpdatedMasters(vector<DomainInfo>* domains);
   void setFresh(uint32_t zoneId); // No, it's not int zoneId. Really.
-  void setNotified(uint32_t zoneId, uint32_t serial); // dito
+  void setNotified(uint32_t zoneId, uint32_t serial); // ditto
   bool list(const string &domain, int zoneId);
-  bool checkACL(const string &acl_type, const string &key, const string &val);
-
   bool startTransaction(const string &domain, int zoneId);
   bool feedRecord(const DNSResourceRecord &rr);
   bool commitTransaction();
@@ -106,7 +104,6 @@ private:
 
   string zoneInfoQuerySQL;
   string alsoNotifyQuerySQL;
-  string checkACLQuerySQL;
   string zoneMastersQuerySQL;
   string isZoneMasterQuerySQL;
   string deleteZoneQuerySQL;
