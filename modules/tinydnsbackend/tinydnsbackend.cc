@@ -55,11 +55,12 @@ TinyDNSBackend::TinyDNSBackend(const string &suffix)
 	d_cdb=new CDB(getArg("dbfile"));
 	
 	//TODO: Make constant or define? 
-	d_taiepock = 4611686018427387904ULL;
+	d_taiepoch = 4611686018427387904ULL;
 }
 
 bool TinyDNSBackend::list(const string &target, int domain_id)
 {
+	cerr<<"LIST CALLED!"<<endl;
 	return false;
 }
 
@@ -79,92 +80,90 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 {
 	L<<Logger::Debug<<"[GET]"<<endl;
 
-	//TODO: Labels aren't very nice. Maybe find another way of doing this?
-	next:
-		if(!d_values.size())
+	while (d_values.size()) 
+	{
+		string val = d_values.back();
+		d_values.pop_back();
+		QType valtype;
+		vector<uint8_t> bytes;
+		const char *sval = val.c_str();
+		unsigned int len = val.size();
+		bytes.resize(len);
+		copy(sval, sval+len, bytes.begin());
+		PacketReader pr(bytes);
+		cerr<<"in get: got value ["<<makeHexDump(val)<<"]" <<endl;
+		valtype = QType(pr.get16BitInt());
+		cerr<<"value has qtype "<<valtype.getName()<<endl;
+		cerr<<"query has qtype "<<d_qtype.getName()<<endl;
+		char locwild = pr.get8BitInt();
+		if(locwild != '\075') 
 		{
-			cerr<<"Returning false..."<<endl;
-			return false;
+		 	// TODO: wildcards; 
+			// TODO: locations
+			cerr<<"wildcard char, or location"<<endl;
+			continue;
 		}
-		else
+		if(d_qtype.getCode()==QType::ANY || valtype==d_qtype)
 		{
-			string val = d_values.back();
-			d_values.pop_back();
-			QType valtype;
-			vector<uint8_t> bytes;
-			const char *sval = val.c_str();
-			unsigned int len = val.size();
-			bytes.resize(len);
-			copy(sval, sval+len, bytes.begin());
-			PacketReader pr(bytes);
-			// rec=(struct tinyrecord *) val.c_str();
-			cerr<<"in get: got value ["<<makeHexDump(val)<<"]" <<endl;
-			valtype = QType(pr.get16BitInt());
-			cerr<<"value has qtype "<<valtype.getName()<<endl;
-			cerr<<"query has qtype "<<d_qtype.getName()<<endl;
-			char locwild = pr.get8BitInt();
-			if(locwild != '\075') 
+			rr.qtype = valtype;
+			rr.qname = d_qdomain;
+			rr.ttl = pr.get32BitInt();
+
+			uint64_t timestamp = pr.get32BitInt();
+			timestamp <<= 32;
+			timestamp += pr.get32BitInt();
+			if(timestamp) 
 			{
-			 	// TODO: wildcards; 
-				// TODO: locations
-				cerr<<"wildcard char, or location"<<endl;
-				goto next;
-			}
-			if(d_qtype.getCode()==QType::ANY || valtype==d_qtype)
-			{
-				cerr<<"WE GOT HIM"<<endl;
-
-				rr.qtype = valtype;
-				rr.qname = d_qdomain;
-				rr.ttl = pr.get32BitInt();
-
-
-				uint64_t timestamp = pr.get32BitInt();
-				timestamp <<= 32;
-				timestamp += pr.get32BitInt();
-				if(timestamp) 
+				uint64_t now = d_taiepoch + time(NULL);
+				cerr<<"   TTL:"<<rr.ttl<<endl;
+				cerr<<"   NOW:"<<now<<endl;
+				cerr<<"TIMEST:"<<timestamp<<endl;
+				if (rr.ttl == 0)
 				{
-					uint64_t now = d_taiepock + time(NULL);
-					cerr<<"TIMESTAMP:"<<timestamp<<endl;
-					cerr<<"      NOW:"<<now<<endl;
-					uint32_t diff = timestamp - now;
-					cerr<<"     DIFF:"<< diff<<endl;
 					if (timestamp < now)
 					{
 						cerr<<"Record is old, do not return."<<endl;
-						goto next;
+						continue;
 					}
-					if (rr.ttl == 0)
-					{
-						rr.ttl = timestamp - now;
-					}
-				}
-
-				cerr<<"passing to mastermake ["<<makeHexDump(sval)<<"]"<<endl;
-
-				DNSRecord dr;
-				dr.d_class = 1;
-				dr.d_type = valtype.getCode();
-				dr.d_clen = val.size()-pr.d_pos;
-				DNSRecordContent *drc = DNSRecordContent::mastermake(dr, pr);
-
-				string content = drc->getZoneRepresentation();
-				if(rr.qtype.getCode() == QType::MX || rr.qtype.getCode() == QType::SRV)
-				{
-					vector<string>parts;
-					stringtok(parts,content," ");
-					rr.priority=atoi(parts[0].c_str());
-					rr.content=content.substr(parts[0].size()+1);
+					rr.ttl = timestamp - now; 
 				}
 				else
 				{
-					rr.content = content;
+					if (now <= timestamp)
+					{
+						cerr<<"Record is not valid yet. Skipping."<<endl;
+						continue;
+					}
 				}
-				cerr<<"rr.priority: "<<rr.priority<<", rr.content: ["<<rr.content<<"]"<<endl;
 			}
+
+			cerr<<"passing to mastermake ["<<makeHexDump(sval)<<"]"<<endl;
+
+			DNSRecord dr;
+			dr.d_class = 1;
+			dr.d_type = valtype.getCode();
+			dr.d_clen = val.size()-pr.d_pos;
+			DNSRecordContent *drc = DNSRecordContent::mastermake(dr, pr);
+
+			string content = drc->getZoneRepresentation();
+			if(rr.qtype.getCode() == QType::MX || rr.qtype.getCode() == QType::SRV)
+			{
+				vector<string>parts;
+				stringtok(parts,content," ");
+				rr.priority=atoi(parts[0].c_str());
+				rr.content=content.substr(parts[0].size()+1);
+			}
+			else
+			{
+				rr.content = content;
+			}
+			cerr<<"rr.priority: "<<rr.priority<<", rr.content: ["<<rr.content<<"]"<<endl;
 			cerr<<"Returning true..."<<endl;
 			return true;
 		}
+	}
+	cout <<"Loop done. return false"<<endl;
+	return false;
 }
 
 // boilerplate

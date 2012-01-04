@@ -30,7 +30,7 @@ public:
 	bool get(DNSResourceRecord &rr);
 	// bool getSOA(const string &name, SOAData &soadata, DNSPacket *p=0);
 private:
-	uint64_t d_taiepock;
+	uint64_t d_taiepoch;
 	int d_fd;
 	QType d_qtype;
 	CDB *d_cdb;
