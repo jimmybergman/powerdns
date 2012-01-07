@@ -54,7 +54,8 @@ vector<string> CDB::findlocations(char &remote)
 			unsigned int vpos = cdb_datapos(&cdb);
 			unsigned int vlen = cdb_datalen(&cdb);
 			if(vlen != 2) {
-				throw new AhuException("Found location, but data was not 2 chars. Check your CDB database!");
+				L<<Logger::Error<<"CDB has location in the database, but the data for that location is not 2 characters. This is unexpected behaviour, check you CDB database."<<endl;
+				break;
 			}
 			cdb_read(&cdb, location, vlen, vpos);
 			string val(location, vlen);
@@ -68,15 +69,22 @@ vector<string> CDB::findlocations(char &remote)
 	return ret;
 }
 
-vector<string> CDB::findall(const string &key)
+vector<string> CDB::findall(string &key)
 {
 	vector<string> ret;
 	int fd;
 	struct cdb cdb = initcdb(fd);
-	struct cdb_find cdbf; /* structure to hold current find position */
+	struct cdb_find cdbf;
+	
+	// the cdb format does not store the wildcard record with a '*' in front, so we need to remove it.
+	// why the '*' is on the 2nd spot, is a mistery to me. Why we remove both chars is also!
+	if (key[1] == '*')
+	{
+		key.erase(0,2);
+	}
 
-	fprintf(stderr, "[findall] key [%s] length [%lu]\n", key.c_str(), key.size());
-	cerr<<"[findall] doing cdb lookup of key ["<<makeHexDump(key)<<"]"<<endl;
+	L<<Logger::Debug<<"[findall] key ["<<key.c_str()<<"] length ["<<key.size()<<"]"<<endl;
+	L<<Logger::Debug<<"[findall] doing cdb lookup of key ["<<makeHexDump(key)<<"]"<<endl;
 
 	cdb_findinit(&cdbf, &cdb, key.c_str(), key.size());
 	int x=0;
@@ -90,7 +98,7 @@ vector<string> CDB::findall(const string &key)
 		ret.push_back(sval);
 		free(val);
 	}
-	fprintf(stderr, "[findall] Found [%d] records for key [%s]\n", x, key.c_str());
+	L<<Logger::Debug<<"[findall] Found ["<<x<<"] records for key ["<<key.c_str()<<"]"<<endl;
 	close(fd);
 	return ret;
 }
@@ -102,12 +110,13 @@ TinyDNSBackend::TinyDNSBackend(const string &suffix)
 	d_cdb=new CDB(getArg("dbfile"));
 	
 	//TODO: Make constant or define? 
+	//TODO: Compensate for leap seconds!
 	d_taiepoch = 4611686018427387904ULL;
 }
 
 bool TinyDNSBackend::list(const string &target, int domain_id)
 {
-	cerr<<"LIST CALLED!"<<endl;
+	L<<Logger::Debug<<"LIST CALLED!"<<endl;
 	return false;
 }
 
@@ -124,6 +133,7 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 	if (pkt_p) {
 	
 		//TODO: look at IpTOU32 or U32ToIP for a better way to do this.
+		//TODO: Also, we do all this work, but we might not even have a record with a location!
 		string ip = pkt_p->getRealRemote().toStringNoMask();
 		
 		boost::char_separator<char> sep(".");
@@ -140,7 +150,7 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 
 bool TinyDNSBackend::get(DNSResourceRecord &rr)
 {
-	L<<Logger::Debug<<"[GET]"<<endl;
+	L<<Logger::Debug<<"[GET] called"<<endl;
 
 	while (d_values.size()) 
 	{
@@ -154,42 +164,32 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 		copy(sval, sval+len, bytes.begin());
 		PacketReader pr(bytes);
 		valtype = QType(pr.get16BitInt());
+		L<<Logger::Debug<<"[GET] ValType:"<<valtype.getName()<<endl;
+		L<<Logger::Debug<<"[GET] QType:"<<d_qtype.getName()<<endl;
 		char locwild = pr.get8BitInt();
-		if(locwild != '\075') 
-		{
-			if (locwild == '>')
-			{
-				vector<string> locations = d_cdb->findlocations(*d_remote);
-				char recloc[2];
-				recloc[0] = pr.get8BitInt();
-				recloc[1] = pr.get8BitInt();	
-	
-				bool foundLocation = false;
-				while(locations.size() > 0) {
-					string locId = locations.back();
-					locations.pop_back();
-					if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
-						foundLocation = true;
-						break;
-					}
-				}
 
-				if (!foundLocation) {
-					cerr<<"The record has a location, and the remote does not match it. Skipping!"<<endl;
-					continue;
+		if(locwild != '\075' && (locwild == '\076' || locwild == '\053')) 
+		{
+			vector<string> locations = d_cdb->findlocations(*d_remote);
+			char recloc[2];
+			recloc[0] = pr.get8BitInt();
+			recloc[1] = pr.get8BitInt();	
+
+			bool foundLocation = false;
+			while(locations.size() > 0) {
+				string locId = locations.back();
+				locations.pop_back();
+				if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
+					foundLocation = true;
+					break;
 				}
+			}
+
+			if (!foundLocation) {
+				L<<Logger::Debug<<"[GET] Record has a location, but this did not match the location(s) of the remote"<<endl;
+				continue;
 			} 
-			else if (locwild == '*')
-			{
-				// Wildcard records replace \075 with \052 and \076 with \053; also, the owner name omits the wildcard.)
-				cerr<<"Wildcard record"<<endl;
-				continue;
-			}
-			else if (locwild == '+')
-			{
-				cerr<<"Location and a wildcard"<<endl;
-				continue;
-			}
+			L<<Logger::Debug<<"[GET] this is a wildcard record, and the location matched!"<<endl;
 		}
 		if(d_qtype.getCode()==QType::ANY || valtype==d_qtype)
 		{
@@ -207,7 +207,6 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 				{
 					if (timestamp < now)
 					{
-						cerr<<"Record is old, do not return."<<endl;
 						continue;
 					}
 					rr.ttl = timestamp - now; 
@@ -216,7 +215,6 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 				{
 					if (now <= timestamp)
 					{
-						cerr<<"Record is not valid yet. Skipping."<<endl;
 						continue;
 					}
 				}
@@ -240,12 +238,11 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			{
 				rr.content = content;
 			}
-			cerr<<"rr.priority: "<<rr.priority<<", rr.content: ["<<rr.content<<"]"<<endl;
-			cerr<<"Returning true..."<<endl;
+			L<<Logger::Debug<<"[GET] returning true with: rr.priority: "<<rr.priority<<", rr.content: ["<<rr.content<<"]"<<endl;
 			return true;
 		}
 	}
-	cout <<"Loop done. return false"<<endl;
+	L<<Logger::Debug<<"[GET] No more results, return false"<<endl;
 	return false;
 }
 

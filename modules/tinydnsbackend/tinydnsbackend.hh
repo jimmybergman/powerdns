@@ -18,7 +18,7 @@ public:
 	CDB(const string &cdbfile) : d_cdbfile(cdbfile)	{}
 	~CDB();
 
-	vector<string> findall(const string &key);
+	vector<string> findall(string &key);
 	vector<string> findlocations(char &remote);
 
 private:
