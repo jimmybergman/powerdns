@@ -61,8 +61,12 @@ vector<string> CDB::findlocations(char &remote)
 			string val(location, vlen);
 			ret.push_back(val);
 		}
-
 		free(key);
+	
+		//Biggest item wins, so when we find something, we can jump out.
+		if (ret.size() > 0) {
+			break;
+		}
 	}
 
 	close(fd);
