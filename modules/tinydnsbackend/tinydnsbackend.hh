@@ -3,10 +3,14 @@
 
 #include <pdns/dnsbackend.hh>
 #include <pdns/logger.hh>
+#include <pdns/iputils.hh>
+#include <pdns/dnspacket.hh>
 #include <cdb.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
 
 class CDB
 {
@@ -15,8 +19,10 @@ public:
 	~CDB();
 
 	vector<string> findall(const string &key);
+	vector<string> findlocations(char &remote);
 
 private:
+	struct cdb initcdb(int &fd);
 	const string d_cdbfile;
 };
 
@@ -36,6 +42,7 @@ private:
 	CDB *d_cdb;
 	vector<string> d_values;
 	string d_qdomain;
+	char d_remote[4];
 };
 
 

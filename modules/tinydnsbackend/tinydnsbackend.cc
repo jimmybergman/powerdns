@@ -2,17 +2,21 @@
 #include <cdb.h>
 #include <pdns/dnslabel.hh>
 #include <pdns/misc.hh>
+#include <pdns/iputils.hh>
+#include <pdns/dnspacket.hh>
 #include <pdns/dnsrecords.hh>
+
 #include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
+
+
 
 const string backendname="[TinyDNSBackend]";
-vector<string> CDB::findall(const string &key)
+struct cdb CDB::initcdb(int &fd)
 {
-	vector<string> ret;
 	struct cdb cdb;
-	struct cdb_find cdbf; /* structure to hold current find position */
 
-	int fd = open(d_cdbfile.c_str(), O_RDONLY);
+	fd = open(d_cdbfile.c_str(), O_RDONLY);
 	if (fd < 0)
 	{
 		L<<Logger::Error<<backendname<<" Failed to open cdb database file '"<<d_cdbfile<<"'. Error: "<<stringerror()<<endl;
@@ -25,6 +29,52 @@ vector<string> CDB::findall(const string &key)
 		L<<Logger::Error<<backendname<<" Failed to initialize cdb database. ErrorNr: '"<<cdbinit<<endl;
 		throw new AhuException(backendname + " Failed to initialize cdb database.");
 	}
+	
+	return cdb;
+}
+
+
+vector<string> CDB::findlocations(char &remote)
+{
+	vector<string> ret;
+	int fd = -1;
+	struct cdb cdb = initcdb(fd);
+	struct cdb_find cdbf;
+
+	for (int i=4;i>0;i--) {
+		char *key = (char *)malloc(i+2);
+		strncpy(key, &remote, i);
+		memmove(key+2, key, i);
+		key[0]=0x00;
+		key[1]=0x25;
+		
+		cdb_findinit(&cdbf, &cdb, key, i+2);
+		while(cdb_findnext(&cdbf) > 0) {
+			char location[2];
+			unsigned int vpos = cdb_datapos(&cdb);
+			unsigned int vlen = cdb_datalen(&cdb);
+			if(vlen != 2) {
+				throw new AhuException("Found location, but data was not 2 chars. Check your CDB database!");
+			}
+			cdb_read(&cdb, location, vlen, vpos);
+			string val(location, vlen);
+			ret.push_back(val);
+		}
+
+		free(key);
+	}
+
+	close(fd);
+	return ret;
+}
+
+vector<string> CDB::findall(const string &key)
+{
+	vector<string> ret;
+	int fd;
+	struct cdb cdb = initcdb(fd);
+	struct cdb_find cdbf; /* structure to hold current find position */
+
 	fprintf(stderr, "[findall] key [%s] length [%lu]\n", key.c_str(), key.size());
 	cerr<<"[findall] doing cdb lookup of key ["<<makeHexDump(key)<<"]"<<endl;
 
@@ -37,7 +87,6 @@ vector<string> CDB::findall(const string &key)
 		char *val = (char *)malloc(vlen);
 		cdb_read(&cdb, val, vlen, vpos);
 		string sval(val, vlen);
-		// cerr<<"got value ["<<makeHexDump(sval)<<"]"<<endl;
 		ret.push_back(sval);
 		free(val);
 	}
@@ -45,8 +94,6 @@ vector<string> CDB::findall(const string &key)
 	close(fd);
 	return ret;
 }
-
-
 
 
 TinyDNSBackend::TinyDNSBackend(const string &suffix)
@@ -74,6 +121,21 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 	d_qtype=qtype;
 	d_values=d_cdb->findall(key);
 	d_qdomain = qdomain;
+	if (pkt_p) {
+	
+		//TODO: look at IpTOU32 or U32ToIP for a better way to do this.
+		string ip = pkt_p->getRealRemote().toStringNoMask();
+		
+		boost::char_separator<char> sep(".");
+		boost::tokenizer< boost::char_separator<char> > tokens(ip, sep);
+		
+		int i =0;
+		BOOST_FOREACH(string t, tokens) 
+		{
+			d_remote[i] = (char)atoi(t.c_str());
+			i++;
+		}
+	}
 }
 
 bool TinyDNSBackend::get(DNSResourceRecord &rr)
@@ -91,17 +153,43 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 		bytes.resize(len);
 		copy(sval, sval+len, bytes.begin());
 		PacketReader pr(bytes);
-		cerr<<"in get: got value ["<<makeHexDump(val)<<"]" <<endl;
 		valtype = QType(pr.get16BitInt());
-		cerr<<"value has qtype "<<valtype.getName()<<endl;
-		cerr<<"query has qtype "<<d_qtype.getName()<<endl;
 		char locwild = pr.get8BitInt();
 		if(locwild != '\075') 
 		{
-		 	// TODO: wildcards; 
-			// TODO: locations
-			cerr<<"wildcard char, or location"<<endl;
-			continue;
+			if (locwild == '>')
+			{
+				vector<string> locations = d_cdb->findlocations(*d_remote);
+				char recloc[2];
+				recloc[0] = pr.get8BitInt();
+				recloc[1] = pr.get8BitInt();	
+	
+				bool foundLocation = false;
+				while(locations.size() > 0) {
+					string locId = locations.back();
+					locations.pop_back();
+					if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
+						foundLocation = true;
+						break;
+					}
+				}
+
+				if (!foundLocation) {
+					cerr<<"The record has a location, and the remote does not match it. Skipping!"<<endl;
+					continue;
+				}
+			} 
+			else if (locwild == '*')
+			{
+				// Wildcard records replace \075 with \052 and \076 with \053; also, the owner name omits the wildcard.)
+				cerr<<"Wildcard record"<<endl;
+				continue;
+			}
+			else if (locwild == '+')
+			{
+				cerr<<"Location and a wildcard"<<endl;
+				continue;
+			}
 		}
 		if(d_qtype.getCode()==QType::ANY || valtype==d_qtype)
 		{
@@ -115,9 +203,6 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			if(timestamp) 
 			{
 				uint64_t now = d_taiepoch + time(NULL);
-				cerr<<"   TTL:"<<rr.ttl<<endl;
-				cerr<<"   NOW:"<<now<<endl;
-				cerr<<"TIMEST:"<<timestamp<<endl;
 				if (rr.ttl == 0)
 				{
 					if (timestamp < now)
@@ -136,8 +221,6 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 					}
 				}
 			}
-
-			cerr<<"passing to mastermake ["<<makeHexDump(sval)<<"]"<<endl;
 
 			DNSRecord dr;
 			dr.d_class = 1;
