@@ -41,7 +41,7 @@ vector<string> CDB::findlocations(char &remote)
 	struct cdb cdb = initcdb(fd);
 	struct cdb_find cdbf;
 
-	for (int i=4;i>0;i--) {
+	for (int i=4;i>=0;i--) {
 		char *key = (char *)malloc(i+2);
 		strncpy(key, &remote, i);
 		memmove(key+2, key, i);
@@ -50,6 +50,7 @@ vector<string> CDB::findlocations(char &remote)
 		
 		cdb_findinit(&cdbf, &cdb, key, i+2);
 		while(cdb_findnext(&cdbf) > 0) {
+			//TODO: A location is allowed to be 1 character! (shocker.)
 			char location[2];
 			unsigned int vpos = cdb_datapos(&cdb);
 			unsigned int vlen = cdb_datalen(&cdb);
@@ -80,11 +81,12 @@ vector<string> CDB::findall(string &key)
 	struct cdb cdb = initcdb(fd);
 	struct cdb_find cdbf;
 	
-	// the cdb format does not store the wildcard record with a '*' in front, so we need to remove it.
-	// why the '*' is on the 2nd spot, is a mistery to me. Why we remove both chars is also!
-	if (key[1] == '*')
+	// The key is a DNSLabel, which has a char for the lenght of the comming label. So, a wildcard for *.example.com starts with \001\052\007\145.
+	bool isWildcardSearch = false;
+	if (key[0] == '\001' && key[1] == '\052')
 	{
 		key.erase(0,2);
+		isWildcardSearch = true;
 	}
 
 	L<<Logger::Debug<<"[findall] key ["<<key.c_str()<<"] length ["<<key.size()<<"]"<<endl;
@@ -99,7 +101,14 @@ vector<string> CDB::findall(string &key)
 		char *val = (char *)malloc(vlen);
 		cdb_read(&cdb, val, vlen, vpos);
 		string sval(val, vlen);
-		ret.push_back(sval);
+		// If this was not a wildcard query, return it.
+		if (!isWildcardSearch) {
+			ret.push_back(sval);
+		// if it was a wildcard query, check if we actually have a wildcard record as well.
+		} else if (sval[2] == '\052' || sval[2] == '\053') {
+			ret.push_back(sval);
+		}
+		
 		free(val);
 	}
 	L<<Logger::Debug<<"[findall] Found ["<<x<<"] records for key ["<<key.c_str()<<"]"<<endl;
@@ -115,7 +124,7 @@ TinyDNSBackend::TinyDNSBackend(const string &suffix)
 	
 	//TODO: Make constant or define? 
 	//TODO: Compensate for leap seconds!
-	d_taiepoch = 4611686018427387904ULL;
+	d_taiepoch = 4611686018427387914ULL;
 }
 
 bool TinyDNSBackend::list(const string &target, int domain_id)
@@ -135,7 +144,7 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 	d_values=d_cdb->findall(key);
 	d_qdomain = qdomain;
 	if (pkt_p) {
-	
+		//TODO: Check on pkt_p->hasEDNSSubnet() ?
 		//TODO: look at IpTOU32 or U32ToIP for a better way to do this.
 		//TODO: Also, we do all this work, but we might not even have a record with a location!
 		string ip = pkt_p->getRealRemote().toStringNoMask();
@@ -183,6 +192,7 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			while(locations.size() > 0) {
 				string locId = locations.back();
 				locations.pop_back();
+				//TODO: A location is allowed to be one character.
 				if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
 					foundLocation = true;
 					break;
@@ -215,12 +225,9 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 					}
 					rr.ttl = timestamp - now; 
 				}
-				else
+				else if (now <= timestamp)
 				{
-					if (now <= timestamp)
-					{
-						continue;
-					}
+					continue;
 				}
 			}
 
