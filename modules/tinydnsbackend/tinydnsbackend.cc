@@ -123,9 +123,7 @@ TinyDNSBackend::TinyDNSBackend(const string &suffix)
 	setArgPrefix("tinydns"+suffix);
 	d_cdb=new CDB(getArg("dbfile"));
 	
-	//TODO: Make constant or define? 
-	//TODO: Compensate for leap seconds!
-	d_taiepoch = 4611686018427387914ULL;
+	d_taiepoch = 4611686018427387904ULL + getArgAsNum("tai-adjust");
 }
 
 bool TinyDNSBackend::list(const string &target, int domain_id)
@@ -267,6 +265,7 @@ public:
 	void declareArguments(const string &suffix="")
 	{
 		declare(suffix, "dbfile", "Location of the cdb data file", "data.cdb");
+		declare(suffix, "tai-adjust", "This adjusts the TAI value if timestamps are used. These seconds will be added to the start point (1970) and will allow you to ajust for leap seconds. The default is 10.", "10");
 	}
 
 
