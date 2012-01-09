@@ -19,7 +19,7 @@ public:
 	~CDB();
 
 	vector<string> findall(string &key);
-	vector<string> findlocations(char &remote);
+	vector<string> findlocations(const Netmask &remote);
 
 private:
 	struct cdb initcdb(int &fd);
@@ -42,7 +42,7 @@ private:
 	CDB *d_cdb;
 	vector<string> d_values;
 	string d_qdomain;
-	char d_remote[4];
+	Netmask d_remote;
 };
 
 

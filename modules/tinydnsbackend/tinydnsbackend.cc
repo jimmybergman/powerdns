@@ -34,8 +34,17 @@ struct cdb CDB::initcdb(int &fd)
 }
 
 
-vector<string> CDB::findlocations(char &remote)
+vector<string> CDB::findlocations(const Netmask &remote)
 {
+	string ip = remote.toStringNoMask();
+	unsigned long addr = remote.getNetwork().sin4.sin_addr.s_addr;	
+
+	char remoteAddr[4];
+	remoteAddr[0] = (addr      )&0xff;
+	remoteAddr[1] = (addr >>  8)&0xff;
+	remoteAddr[2] = (addr >> 16)&0xff;
+	remoteAddr[3] = (addr >> 24)&0xff;
+
 	vector<string> ret;
 	int fd = -1;
 	struct cdb cdb = initcdb(fd);
@@ -43,7 +52,7 @@ vector<string> CDB::findlocations(char &remote)
 
 	for (int i=4;i>=0;i--) {
 		char *key = (char *)malloc(i+2);
-		strncpy(key, &remote, i);
+		strncpy(key, remoteAddr, i);
 		memmove(key+2, key, i);
 		key[0]='\000';
 		key[1]='\045';
@@ -142,21 +151,9 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 	d_qtype=qtype;
 	d_values=d_cdb->findall(key);
 	d_qdomain = qdomain;
-	if (pkt_p) {
-		//TODO: Check on pkt_p->hasEDNSSubnet() ?
-		//TODO: look at IpTOU32 or U32ToIP for a better way to do this.
-		//TODO: Also, we do all this work, but we might not even have a record with a location!
-		string ip = pkt_p->getRealRemote().toStringNoMask();
-		
-		boost::char_separator<char> sep(".");
-		boost::tokenizer< boost::char_separator<char> > tokens(ip, sep);
-		
-		int i =0;
-		BOOST_FOREACH(string t, tokens) 
-		{
-			d_remote[i] = (char)atoi(t.c_str());
-			i++;
-		}
+	//TODO: add ipv6 support
+	if (pkt_p && pkt_p->getRealRemote().getBits() == 32) {
+		d_remote = pkt_p->getRealRemote();
 	}
 }
 
@@ -180,12 +177,14 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 		L<<Logger::Debug<<"[GET] QType:"<<d_qtype.getName()<<endl;
 		char locwild = pr.get8BitInt();
 
+		//TODO: check if d_remote is set?
 		if(locwild != '\075' && (locwild == '\076' || locwild == '\053')) 
 		{
-			vector<string> locations = d_cdb->findlocations(*d_remote);
 			char recloc[2];
 			recloc[0] = pr.get8BitInt();
 			recloc[1] = pr.get8BitInt();	
+			
+			vector<string> locations = d_cdb->findlocations(d_remote);
 
 			bool foundLocation = false;
 			while(locations.size() > 0) {
