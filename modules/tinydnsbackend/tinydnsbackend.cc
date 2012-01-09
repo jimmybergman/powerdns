@@ -45,19 +45,18 @@ vector<string> CDB::findlocations(char &remote)
 		char *key = (char *)malloc(i+2);
 		strncpy(key, &remote, i);
 		memmove(key+2, key, i);
-		key[0]=0x00;
-		key[1]=0x25;
+		key[0]='\000';
+		key[1]='\045';
 		
 		cdb_findinit(&cdbf, &cdb, key, i+2);
 		while(cdb_findnext(&cdbf) > 0) {
-			//TODO: A location is allowed to be 1 character! (shocker.)
-			char location[2];
 			unsigned int vpos = cdb_datapos(&cdb);
 			unsigned int vlen = cdb_datalen(&cdb);
 			if(vlen != 2) {
-				L<<Logger::Error<<"CDB has location in the database, but the data for that location is not 2 characters. This is unexpected behaviour, check you CDB database."<<endl;
-				break;
+				L<<Logger::Error<<"CDB has location in the database, but the data for that location is not 2 bytes. This is unexpected behaviour, check you CDB database."<<endl;
+				continue;
 			}
+			char location[2];
 			cdb_read(&cdb, location, vlen, vpos);
 			string val(location, vlen);
 			ret.push_back(val);
@@ -70,6 +69,7 @@ vector<string> CDB::findlocations(char &remote)
 		}
 	}
 
+	cdb_free(&cdb);
 	close(fd);
 	return ret;
 }
@@ -112,6 +112,7 @@ vector<string> CDB::findall(string &key)
 		free(val);
 	}
 	L<<Logger::Debug<<"[findall] Found ["<<x<<"] records for key ["<<key.c_str()<<"]"<<endl;
+	cdb_free(&cdb);
 	close(fd);
 	return ret;
 }
@@ -192,7 +193,7 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			while(locations.size() > 0) {
 				string locId = locations.back();
 				locations.pop_back();
-				//TODO: A location is allowed to be one character.
+
 				if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
 					foundLocation = true;
 					break;
