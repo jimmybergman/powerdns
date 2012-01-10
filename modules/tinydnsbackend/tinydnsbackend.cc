@@ -151,10 +151,8 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 	d_qtype=qtype;
 	d_values=d_cdb->findall(key);
 	d_qdomain = qdomain;
+	d_dnspacket = pkt_p;
 	//TODO: add ipv6 support
-	if (pkt_p && pkt_p->getRealRemote().getBits() == 32) {
-		d_remote = pkt_p->getRealRemote();
-	}
 }
 
 bool TinyDNSBackend::get(DNSResourceRecord &rr)
@@ -177,30 +175,33 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 		L<<Logger::Debug<<"[GET] QType:"<<d_qtype.getName()<<endl;
 		char locwild = pr.get8BitInt();
 
-		//TODO: check if d_remote is set?
 		if(locwild != '\075' && (locwild == '\076' || locwild == '\053')) 
 		{
 			char recloc[2];
 			recloc[0] = pr.get8BitInt();
 			recloc[1] = pr.get8BitInt();	
-			
-			vector<string> locations = d_cdb->findlocations(d_remote);
 
 			bool foundLocation = false;
-			while(locations.size() > 0) {
-				string locId = locations.back();
-				locations.pop_back();
+			//TODO: Add ipv6 support.
+			if (d_dnspacket && d_dnspacket->getRealRemote().getBits() == 32) {
+				vector<string> locations = d_cdb->findlocations(d_dnspacket->getRealRemote());
 
-				if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
-					foundLocation = true;
-					break;
+				while(locations.size() > 0) {
+					string locId = locations.back();
+					locations.pop_back();
+
+					if (recloc[0] == locId[0] && recloc[1] == locId[1]) {
+						foundLocation = true;
+						break;
+					}
 				}
+			
 			}
-
 			if (!foundLocation) {
 				L<<Logger::Debug<<"[GET] Record has a location, but this did not match the location(s) of the remote"<<endl;
 				continue;
 			} 
+			
 			L<<Logger::Debug<<"[GET] this is a wildcard record, and the location matched!"<<endl;
 		}
 		if(d_qtype.getCode()==QType::ANY || valtype==d_qtype)

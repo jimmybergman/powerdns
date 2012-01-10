@@ -42,7 +42,7 @@ private:
 	CDB *d_cdb;
 	vector<string> d_values;
 	string d_qdomain;
-	Netmask d_remote;
+	DNSPacket *d_dnspacket;
 };
 
 
