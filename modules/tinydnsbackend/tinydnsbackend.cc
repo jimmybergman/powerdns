@@ -152,7 +152,6 @@ void TinyDNSBackend::lookup(const QType &qtype, const string &qdomain, DNSPacket
 	d_values=d_cdb->findall(key);
 	d_qdomain = qdomain;
 	d_dnspacket = pkt_p;
-	//TODO: add ipv6 support
 }
 
 bool TinyDNSBackend::get(DNSResourceRecord &rr)
@@ -183,6 +182,7 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 
 			bool foundLocation = false;
 			//TODO: Add ipv6 support.
+			// IF the dnspacket is not set, we simply do not output any queries with a location.
 			if (d_dnspacket && d_dnspacket->getRealRemote().getBits() == 32) {
 				vector<string> locations = d_cdb->findlocations(d_dnspacket->getRealRemote());
 
