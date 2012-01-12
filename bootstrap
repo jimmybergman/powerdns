@@ -1,5 +1,4 @@
 #!/bin/sh
-
 echo failing
 exit 1
 autoreconf -i
