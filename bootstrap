@@ -1,5 +1,5 @@
 #!/bin/sh
-sleep 21
+sleep 40
 echo failing
 exit 1
 autoreconf -i
