@@ -1,7 +1,4 @@
 #!/bin/sh
-sleep 40
-echo failing
-exit 1
 autoreconf -i
 automake --add-missing
 
