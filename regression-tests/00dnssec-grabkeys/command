@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 rm -f trustedkeys
 for zone in $(grep zone named.conf  | cut -f2 -d\")
 do
