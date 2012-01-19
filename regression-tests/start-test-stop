@@ -10,3 +10,4 @@ port=$1
 export port
 nameserver=127.0.0.1 ./runtests
 kill $(cat pdns.pid)
+./toxml bind-gsqlite3 > testresults.xml
