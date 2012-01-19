@@ -12,4 +12,8 @@ do
 	echo '    <error type="error" message="test failed"/>'
 	echo '  </testcase>'
 done
+for t in $(cat passed_tests)
+do
+	echo '  <testcase name="'$t'" classname="'$CONTEXT'" time="0" />'
+done
 echo '</testsuite>'
