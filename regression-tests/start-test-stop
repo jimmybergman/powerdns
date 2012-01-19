@@ -14,7 +14,7 @@ context=$2
 
 case $context in
 		bind)
-			./pdns/pdns_server --daemon=no --local-port=5300 --socket-dir=./  \
+			../pdns/pdns_server --daemon=no --local-port=5300 --socket-dir=./  \
 				--no-shuffle --launch=bind --bind-config=./named.conf                \
 				--fancy-records --query-logging --send-root-referral --loglevel=9    \
 				--cache-ttl=0 --no-config &
@@ -37,8 +37,6 @@ case $context in
 			mysqladmin --user="$GMYSQLUSER" --password="$GMYSQLPASSWD" --host="$GMYSQLHOST" create "$GMYSQLDB"
 			mysql --user="$GMYSQLUSER" --password="$GMYSQLPASSWD" --host="$GMYSQLHOST" \
 				"$GMYSQLDB" < ../pdns/no-dnssec.schema.mysql.sql
-			mysql --user="$GMYSQLUSER" --password="$GMYSQLPASSWD" --host="$GMYSQLHOST" \
-				"$GMYSQLDB" < ../pdns/dnssec.schema.mysql.sql
 
 			tosql gmysql | mysql --user="$GMYSQLUSER" --password="$GMYSQLPASSWD" --host="$GMYSQLHOST" \
 				"$GMYSQLDB"
