@@ -1,9 +1,9 @@
 #!/bin/sh
 ../pdns/sdig $nameserver $port $1 $2 | sort
-if drill -p $port -o rd -D -k trustedkeys $1 $2 @$nameserver > drill.test.output
+if drill -p $port -o rd -D -k trustedkeys $1 $2 @$nameserver > $testname/drill.test.output
 then
-	rm -f drill.test.output
+	:
 else
-	cat drill.test.output >> dnssec-validation-failures
-	echo '-- MARK --' >> dnssec-validation-failures
+	echo $testname >> dnssec-validation-failures
 fi
+/usr/lib/go/bin/q -dnssec -check -port=$port @$nameserver $1 $2 > $testname/godns-q.out
