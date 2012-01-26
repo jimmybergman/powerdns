@@ -6,4 +6,4 @@ then
 else
 	echo $testname >> dnssec-validation-failures
 fi
-/usr/lib/go/bin/q -dnssec -check -port=$port @$nameserver $1 $2 > $testname/godns-q.out
+/usr/lib/go/bin/q -tcp -dnssec -check -port=$port @$nameserver $1 $2 > $testname/godns-q.out
