@@ -181,8 +181,9 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			dr.d_class = 1;
 			dr.d_type = valtype.getCode();
 			dr.d_clen = val.size()-pr.d_pos;
-			
+			cerr<<"BEFORE mastermake"<<endl;	
 			DNSRecordContent *drc = DNSRecordContent::mastermake(dr, pr);
+			cerr<<"AFTER mastermake"<<endl;	
 
 			string content = drc->getZoneRepresentation();
 			if(rr.qtype.getCode() == QType::MX || rr.qtype.getCode() == QType::SRV)
