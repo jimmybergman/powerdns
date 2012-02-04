@@ -90,6 +90,13 @@ __EOF__
 				--gmysql-host="$GMYSQLHOST" \
 				--gmysql-password="$GMYSQLPASS" &
 			;;			
+		tinydns)
+			../pdns/pdns_server --daemon=no --local-port=$port --socket-dir=./ \
+				--no-shuffle --launch=tinydns --tinydns-dbfile=./data.cdb \
+				--query-logging --loglevel=9 --cache-ttl=0 --no-config \
+				--send-root-referral \
+				--load-modules=../modules/tinydnsbackend/.libs/libtinydnsbackend.so &
+			;;
 		*)
 			echo unknown context $context
 			: > passed_tests
