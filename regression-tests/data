@@ -20158,6 +20158,7 @@ Cwww.test.com.:server1.test.com.:3600
 +server1.test.com.:1.2.3.4:3600
 C*.test.test.com.:server1.test.com.:3600
 +www.test.test.com.:4.3.2.1:3600
+&sub.test.test.com.::ns-test.example.net.test.com.:3600
 :enum.test.com:35:\000\062\000\144\001U\007e2u+sip\000\023testuser@domain.com\000:3600
 +counter.test.com.:1.1.1.5:3600
 :server1.test.com.:17:\003ahu\004ds9a\002nl\000\007counter\004test\003com\000:3600
