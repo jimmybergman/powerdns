@@ -28,7 +28,7 @@ Zexample.com.:ns1.example.com.:ahu.example.com.:2000081501:28800:7200:604800:864
 #:location.example.com:29:51 56 2.123 N 5 54 0.000 E 4.00m 1.00m 10000.00m 10.00m:120
 #:location.example.com:29:51 56 3.123 N 5 54 0.000 E 4.00m 1.00m 10000.00m 10.00m:120
 +localhost.example.com.:127.0.0.1:120
-:hwinfo.example.com:13:aaaa:120
+:hwinfo.example.com:13:\003abc\003def:120
 'text-example.example.com:aaaa\040beee:120
 Cwww.example.com.:outpost.example.com.:120
 +smtp-servers.example.com.:192.168.0.2:120
