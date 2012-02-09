@@ -154,8 +154,11 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 		{
 			DNSLabel dnsKey(key.c_str(), key.size());
 			rr.qname = dnsKey.human();
+			// strip of the . (dot) at the end, if we don't packethandler does not handle this correctly.
+			rr.qname = rr.qname.erase(rr.qname.size()-1, 1);
 			rr.qtype = valtype;
 			rr.ttl = pr.get32BitInt();
+			rr.auth = true;
 
 			uint64_t timestamp = pr.get32BitInt();
 			timestamp <<= 32;
@@ -184,6 +187,7 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			cerr<<"BEFORE mastermake"<<endl;	
 			DNSRecordContent *drc = DNSRecordContent::mastermake(dr, pr);
 			cerr<<"AFTER mastermake"<<endl;	
+			// We are always auth?
 
 			string content = drc->getZoneRepresentation();
 			if(rr.qtype.getCode() == QType::MX || rr.qtype.getCode() == QType::SRV)
@@ -203,6 +207,7 @@ bool TinyDNSBackend::get(DNSResourceRecord &rr)
 			return true;
 		}
 	} // end of while
+	cerr<<"Returning false."<<endl;
 	return false;
 }
 
