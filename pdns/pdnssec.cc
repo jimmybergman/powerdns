@@ -139,6 +139,7 @@ void loadMainConfig(const std::string& configdir)
 }
 
 // irritatingly enough, rectifyZone needs its own ueberbackend and can't therefore benefit from transactions outside its scope
+// I think this has to do with interlocking transactions between B and DK, but unsure.
 void rectifyZone(DNSSECKeeper& dk, const std::string& zone)
 {
   scoped_ptr<UeberBackend> B(new UeberBackend("default"));
@@ -406,42 +407,42 @@ void showZone(DNSSECKeeper& dk, const std::string& zone)
 
 bool secureZone(DNSSECKeeper& dk, const std::string& zone)
 {
-	if(dk.isSecuredZone(zone)) {
-		cerr << "Zone '"<<zone<<"' already secure, remove keys with pdnssec remove-zone-key if needed"<<endl;
-		return false;
-	}
+  if(dk.isSecuredZone(zone)) {
+    cerr << "Zone '"<<zone<<"' already secure, remove keys with pdnssec remove-zone-key if needed"<<endl;
+    return false;
+  }
 
-	if(!dk.secureZone(zone, 8)) {
-		cerr<<"No backend was able to secure '"<<zone<<"', most likely because no DNSSEC\n";
-		cerr<<"capable backends are loaded, or because the backends have DNSSEC disabled.\n";
-		cerr<<"For the Generic SQL backends, set 'gsqlite3-dnssec' or 'gmysql-dnssec' or\n";
-		cerr<<"'gpgsql-dnssec' etc. Also make sure the schema has been updated for DNSSEC!\n";
-		return false;
-	}
+  if(!dk.secureZone(zone, 8)) {
+    cerr<<"No backend was able to secure '"<<zone<<"', most likely because no DNSSEC\n";
+    cerr<<"capable backends are loaded, or because the backends have DNSSEC disabled.\n";
+    cerr<<"For the Generic SQL backends, set 'gsqlite3-dnssec' or 'gmysql-dnssec' or\n";
+    cerr<<"'gpgsql-dnssec' etc. Also make sure the schema has been updated for DNSSEC!\n";
+    return false;
+  }
 
-	if(!dk.isSecuredZone(zone)) {
-		cerr<<"Failed to secure zone. Is your backend dnssec enabled? (set \n";
-		cerr<<"sqlite3-dnssec, or gmysql-dnssec etc). Check this first.\n";
-		cerr<<"If you run with the BIND backend, make sure to also launch another\n";
-		cerr<<"backend which supports storage of DNSSEC settings.\n";
-		cerr<<"In addition, add '"<<zone<<"' to this backend, possibly like this: \n\n";
-		cerr<<"   insert into domains (name, type) values ('"<<zone<<"', 'NATIVE');\n\n";
-		cerr<<"And then rerun secure-zone"<<endl;
-		return false;
-	}
+  if(!dk.isSecuredZone(zone)) {
+    cerr<<"Failed to secure zone. Is your backend dnssec enabled? (set \n";
+    cerr<<"sqlite3-dnssec, or gmysql-dnssec etc). Check this first.\n";
+    cerr<<"If you run with the BIND backend, make sure to also launch another\n";
+    cerr<<"backend which supports storage of DNSSEC settings.\n";
+    cerr<<"In addition, add '"<<zone<<"' to this backend, possibly like this: \n\n";
+    cerr<<"   insert into domains (name, type) values ('"<<zone<<"', 'NATIVE');\n\n";
+    cerr<<"And then rerun secure-zone"<<endl;
+    return false;
+  }
 
-	DNSSECKeeper::keyset_t zskset=dk.getKeys(zone, false);
+  DNSSECKeeper::keyset_t zskset=dk.getKeys(zone, false);
 
-	if(!zskset.empty())  {
-		cerr<<"There were ZSKs already for zone '"<<zone<<"', no need to add more"<<endl;
-		return false;
-	}
-		
-	dk.addKey(zone, false, 8);
-	dk.addKey(zone, false, 8, 0, false); // not active
-	// rectifyZone(dk, zone);
-	// showZone(dk, zone);
-	cout<<"Zone "<<zone<<" secured"<<endl;
+  if(!zskset.empty())  {
+    cerr<<"There were ZSKs already for zone '"<<zone<<"', no need to add more"<<endl;
+    return false;
+  }
+    
+  dk.addKey(zone, false, 8);
+  dk.addKey(zone, false, 8, 0, false); // not active
+  // rectifyZone(dk, zone);
+  // showZone(dk, zone);
+  cout<<"Zone "<<zone<<" secured"<<endl;
   return true;
 }
 
@@ -481,9 +482,9 @@ try
     cerr<<"hash-zone-record ZONE RNAME      Calculate the NSEC3 hash for RNAME in ZONE\n";
     cerr<<"import-zone-key ZONE FILE        Import from a file a private key, ZSK or KSK\n";            
     cerr<<"                [ksk|zsk]        Defaults to KSK\n";
-    cerr<<"rectify-zone ZONE                Fix up DNSSEC fields (order, auth)\n";
+    cerr<<"rectify-zone ZONE [ZONE ..]      Fix up DNSSEC fields (order, auth)\n";
     cerr<<"remove-zone-key ZONE KEY-ID      Remove key with KEY-ID from ZONE\n";
-    cerr<<"secure-zone ZONE                 Add KSK and two ZSKs\n";
+    cerr<<"secure-zone ZONE [ZONE ..]       Add KSK and two ZSKs\n";
     cerr<<"set-nsec3 ZONE 'params' [narrow] Enable NSEC3 with PARAMs. Optionally narrow\n";
     cerr<<"set-presigned ZONE               Use presigned RRSIGs from storage\n";
     cerr<<"show-zone ZONE                   Show DNSSEC (public) key details about a zone\n";
@@ -504,11 +505,12 @@ try
   DNSSECKeeper dk;
 
   if(cmds[0] == "rectify-zone") {
-    if(cmds.size() != 2) {
-      cerr << "Syntax: pdnssec rectify-zone ZONE"<<endl;
+    if(cmds.size() < 2) {
+      cerr << "Syntax: pdnssec rectify-zone ZONE [ZONE..]"<<endl;
       return 0;
     }
-    rectifyZone(dk, cmds[1]);
+    for(unsigned int n = 1; n < cmds.size(); ++n) 
+      rectifyZone(dk, cmds[n]);
   }
   else if(cmds[0] == "check-zone") {
     if(cmds.size() != 2) {
@@ -633,11 +635,11 @@ try
     vector<string> mustRectify;
     dk.startTransaction();    
     for(unsigned int n = 1; n < cmds.size(); ++n) {
-			const string& zone=cmds[n];
-			if(secureZone(dk, zone)) {
+      const string& zone=cmds[n];
+      if(secureZone(dk, zone)) {
         mustRectify.push_back(zone);
       }
-		}
+    }
     
     dk.commitTransaction();
     BOOST_FOREACH(string& zone, mustRectify)
@@ -668,7 +670,7 @@ try
   else if(cmds[0]=="unset-presigned") {
     if(cmds.size() < 2) {
       cerr<<"Syntax: pdnssec unset-presigned ZONE"<<endl;
-      return 0;	
+      return 0;  
     }
     dk.unsetPresigned(cmds[1]);
   }
