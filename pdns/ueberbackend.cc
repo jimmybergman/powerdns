@@ -360,9 +360,9 @@ void UeberBackend::addCache(const Question &q, const vector<DNSResourceRecord> &
   boost::archive::binary_oarchive boa(ostr, boost::archive::no_header);
 
   BOOST_FOREACH(DNSResourceRecord rr, rrs) {
-    if (rr.ttl < queryttl) 
+    if (rr.ttl < queryttl)
       queryttl = rr.ttl;
-  }  
+  }
   
   boa << rrs;
   PC.insert(q.qname, q.qtype, PacketCache::QUERYCACHE, ostr.str(), queryttl, q.zoneId);

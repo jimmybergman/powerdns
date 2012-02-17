@@ -110,7 +110,7 @@ void PacketCache::getTTLS()
 }
 
 
-void PacketCache::insert(DNSPacket *q, DNSPacket *r, unsigned int ttl)
+void PacketCache::insert(DNSPacket *q, DNSPacket *r, unsigned int maxttl)
 {
   if(d_ttl < 0)
     getTTLS();
@@ -125,8 +125,8 @@ void PacketCache::insert(DNSPacket *q, DNSPacket *r, unsigned int ttl)
   bool packetMeritsRecursion=d_doRecursion && q->d.rd;
   uint16_t maxReplyLen = q->d_tcp ? 0xffff : q->getMaxReplyLen();
   int ourttl = packetMeritsRecursion ? d_recursivettl : d_ttl;
-  if(ttl<ourttl)
-    ourttl=ttl;
+  if(maxttl<ourttl)
+    ourttl=maxttl;
   insert(q->qdomain, q->qtype, PacketCache::PACKETCACHE, r->getString(), ourttl, -1, packetMeritsRecursion,
     maxReplyLen, q->d_dnssecOk);
 }
