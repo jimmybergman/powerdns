@@ -1,16 +1,19 @@
 # $Id$ 
 
-all: pdns.txt pdns.pdf html/index.html html.tar.gz
+all: pdns.txt pdns.pdf html/index.html html.tar.gz pdns-expanded.html
 
 pdns-expanded.xml: pdns.xml
 	./expand < $< > $@
 	
 clean:
-	rm -rf *.dvi *.pdf *.tex *.toc *.aux *.ps *.bak *.tmp *~ *.log pdns.txt html.tar.gz html pdns
+	rm -rf *.dvi *.pdf *.tex *.toc *.aux *.ps *.bak *.tmp *~ *.log pdns.txt html.tar.gz html pdns pdns-expanded.html
 
 html/index.html: pdns-expanded.xml
 	xmlto xhtml -m config.xsl -o html $<
 	cp docbook.css html
+
+pdns-expanded.html: pdns-expanded.xml
+	xmlto xhtml-nochunks -m config.xsl $<
 	
 html.tar.gz: html/index.html
 	tar czf html.tar.gz html/
