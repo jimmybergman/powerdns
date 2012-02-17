@@ -147,6 +147,7 @@ public:
   bool d_tcp;
   bool d_dnssecOk;
   bool d_havetsig;
+  unsigned int d_minttl;
 
   bool getTSIGDetails(TSIGRecordContent* tr, string* keyname, string* message) const;
   void setTSIGDetails(const TSIGRecordContent& tr, const string& keyname, const string& secret, const string& previous, bool timersonly=false);

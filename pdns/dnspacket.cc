@@ -236,6 +236,8 @@ void DNSPacket::wrapup()
     return;
   }
 
+  d_minttl=UINT_MAX;
+
   DNSResourceRecord rr;
   vector<DNSResourceRecord>::iterator pos;
 
@@ -248,6 +250,12 @@ void DNSPacket::wrapup()
   if(!d_tcp && !mustNotShuffle) {
     shuffle(d_rrs);
   }
+
+  BOOST_FOREACH(DNSResourceRecord rr, d_rrs) {
+    if (rr.ttl < d_minttl)
+      d_minttl = rr.ttl;
+  }
+
   d_wrapped=true;
 
   vector<uint8_t> packet;
