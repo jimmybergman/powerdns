@@ -2,3 +2,5 @@
 0	test.com.	IN	NS	3600	ns2.test.com.
 Rcode: 0, RD: 0, QR: 1, TC: 0, AA: 1, opcode: 0
 Reply to question for qname='test.com.', qtype=NS
+test.com has NS record ns1.test.com. (secure)
+test.com has NS record ns2.test.com. (secure)

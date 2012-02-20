@@ -4,3 +4,5 @@
 2	ns2.example.com.	IN	A	120	192.168.1.2
 Rcode: 0, RD: 0, QR: 1, TC: 0, AA: 1, opcode: 0
 Reply to question for qname='example.com.', qtype=NS
+example.com has NS record ns1.example.com. (secure)
+example.com has NS record ns2.example.com. (secure)
