@@ -107,4 +107,5 @@ nameserver=127.0.0.1 ./runtests
 echo push enter
 read x
 kill $(cat pdns.pid)
+rm -f pdns-gmysql.conf
 ./toxml
