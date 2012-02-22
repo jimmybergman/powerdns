@@ -1,10 +1,19 @@
 #!/bin/sh
 ../pdns/sdig $nameserver $port $1 $2 | sort
+echo $?
+echo
+echo -- drillchase
+drill -a -p $port -o rd -D -S -k trustedkeys $1 $2 @$nameserver
+echo $?
+echo
+echo -- drill
+drill -a -p $port -o rd -D -k trustedkeys $1 $2 @$nameserver
+echo $?
+echo
+echo -- godns q
+/usr/lib/go/bin/q -rd=false -check -dnssec -port=$port @$nameserver $2 $1
+echo $?
+echo
+echo -- unbound-host
 unbound-host -v -C unbound-host.conf -t $2 $1 2>&1
-if drill -p $port -o rd -D -k trustedkeys $1 $2 @$nameserver > drill.test.output
-then
-	rm -f drill.test.output
-else
-	cat drill.test.output >> dnssec-validation-failures
-	echo '-- MARK --' >> dnssec-validation-failures
-fi
+echo $?
