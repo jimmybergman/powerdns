@@ -1,6 +1,6 @@
 /*
     PowerDNS Versatile Database Driven Nameserver
-    Copyright (C) 2002-2011  PowerDNS.COM BV
+    Copyright (C) 2002-2012  PowerDNS.COM BV
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License version 2 as 
@@ -477,7 +477,8 @@ void PacketHandler::emitNSEC(const std::string& begin, const std::string& end, c
   rr.ttl = sd.default_ttl;
   B.lookup(QType(QType::ANY), begin);
   while(B.get(rr)) {
-    nrc.d_set.insert(rr.qtype.getCode());    
+    if(rr.domain_id == sd.domain_id) 
+      nrc.d_set.insert(rr.qtype.getCode());    
   }
   
   nrc.d_next=end;
@@ -715,90 +716,6 @@ bool PacketHandler::doDNSSECProcessing(DNSPacket *p, DNSPacket *r)
   
   return false;
 }
-#if 0
-/* returns 1 if everything is done & ready, 0 if the search should continue, 2 if a 'NO-ERROR' response should be generated */
-int PacketHandler::makeCanonic(DNSPacket *p, DNSPacket *r, string &target)
-{
-  DNSResourceRecord rr;
-
-  bool found=false, rfound=false;
-
-  if(p->qtype.getCode()!=QType::CNAME && !d_doCNAME)
-    return 0;
-
-  // Traverse a CNAME chain if needed
-  for(int numloops=0;;numloops++) {
-    if(numloops==10) {
-      L<<Logger::Error<<"Detected a CNAME loop involving "<<target<<", sending SERVFAIL"<<endl;
-      r->setRcode(2);
-      return 1;
-    }
-
-    B.lookup(QType(QType::ANY),target,p);
-        
-    bool shortcut=p->qtype.getCode()!=QType::SOA && p->qtype.getCode()!=QType::ANY;
-    int hits=0;
-    bool relevantNS=false;
-    bool sawDS=false;
-    bool crossedZoneCut = false;
-    while(B.get(rr)) {
-      if(rr.qtype.getCode() == QType::NS && p->qtype.getCode() != QType::NS) { // possible retargeting
-        relevantNS=true;
-      }
-
-      if(rr.qtype.getCode()==QType::DS && p->qtype.getCode() == QType::NS && p->d_dnssecOk) {
-        sawDS = true;
-        r->addRecord(rr);
-      }
-
-      if(rr.qtype.getCode()!=QType::NS || p->qtype.getCode()==QType::NS)
-        hits++;
-      if(!rfound && rr.qtype.getCode()==QType::CNAME) {
-        found=true;
-        r->addRecord(rr);
-        target=rr.content; // for retargeting
-      }
-      if(shortcut && !found && rr.qtype==p->qtype) {
-        if(!rr.auth) {
-        // no idea why this if is here
-        }
-	  
-        rfound=true;
-        r->addRecord(rr);
-      }
-    }
-
-    if(crossedZoneCut) {
-      DLOG(L<<"Should return NS records, and this A/AAAA record in the additional section.."<<endl);
-    }
-
-    if(!sawDS && p->qtype.getCode() == QType::NS && p->d_dnssecOk && rfound) {
-      addNSECX(p, r, p->qdomain, "", 2); // make it 'official' that we have no DS
-    }
-
-    if(hits && !relevantNS && !found && !rfound && shortcut ) { // XXX FIXME !numloops. we found matching qnames but not a qtype
-      DLOG(L<<"Found matching qname, but not the qtype"<<endl);
-      return 2;
-    }
-
-    if(rfound)
-      return 1; // ANY lookup found the right answer immediately
-
-    if(found) {
-      if(p->qtype.getCode()==QType::CNAME) // they really wanted a CNAME!
-        return 1;
-      DLOG(L<<"Looping because of a CNAME to "<<target<<endl);
-      found=false;
-    }
-    else 
-      break;
-  }
-
-  // we now have what we really search for ready in 'target'
-  return 0;
-}
-
-#endif
 
 /* Semantics:
    
@@ -904,8 +821,6 @@ int PacketHandler::processNotify(DNSPacket *p)
   Communicator.addSlaveCheckRequest(di, p->d_remote);
   return 0;
 }
-
-
 
 bool validDNSName(const string &name)
 {
@@ -1307,7 +1222,7 @@ DNSPacket *PacketHandler::questionOrRecurse(DNSPacket *p, bool *shouldRecurse)
     // see what we get..
     B.lookup(QType(QType::ANY), target, p, sd.domain_id);
     rrset.clear();
-    weDone=weRedirected=weHaveUnauth=0;
+    weDone = weRedirected = weHaveUnauth = 0;
     
     while(B.get(rr)) {
       if(rr.qtype.getCode() == QType::DS)
@@ -1333,10 +1248,15 @@ DNSPacket *PacketHandler::questionOrRecurse(DNSPacket *p, bool *shouldRecurse)
     }
 
     DLOG(L<<"After first ANY query for '"<<target<<"', id="<<sd.domain_id<<": weDone="<<weDone<<", weHaveUnauth="<<weHaveUnauth<<", weRedirected="<<weRedirected<<endl);
+    if(p->qtype.getCode() == QType::DS && weHaveUnauth &&  !weDone && !weRedirected && d_dk.isSecuredZone(sd.qname)) {
+      DLOG(L<<"Q for DS of a name for which we do have NS, but for which we don't have on a zone with DNSSEC need to provide an AUTH answer that proves we don't"<<endl);
+      makeNOError(p, r, target, sd);
+      goto sendit;
+    }
 
     if(rrset.empty()) {
       // try NS referrals, and if they don't work, go look for wildcards
-
+      
       DLOG(L<<"Found nothing in the ANY and wildcards, let's try NS referral"<<endl);
       if(tryReferral(p, r, sd, target))
         goto sendit;
