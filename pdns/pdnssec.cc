@@ -607,11 +607,11 @@ try
       cerr<<"Syntax: pdnssec set-nsec3 ZONE 'params' [narrow]"<<endl;
       return 0;
     }
-    string nsec3params =  cmds.size() > 2 ? cmds[2] : "1 1 1 ab";
+    string nsec3params =  cmds.size() > 2 ? cmds[2] : "1 0 1 ab";
     bool narrow = cmds.size() > 3 && cmds[3]=="narrow";
     NSEC3PARAMRecordContent ns3pr(nsec3params);
-    if(!ns3pr.d_flags) {
-      cerr<<"PowerDNS only implements opt-out zones, please set the second parameter to '1' (example, '1 1 1 ab')"<<endl;
+    if(ns3pr.d_flags) {
+      cerr<<"The only defined value for the NSEC3PARAM flags is 0, please set the second parameter to '0' (example, '1 0 1 ab')"<<endl;
       return 0;
     }
     
