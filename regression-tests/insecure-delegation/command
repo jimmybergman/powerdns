@@ -1,0 +1,2 @@
+#!/bin/sh
+drill -a -p "$port" -o rd -D -k trustedkeys usa.example.com DS @"$nameserver" | grep -E "IN[[:space:]]NSEC3|Existence denied" | tr "\t" " " | tr -s " " | sort

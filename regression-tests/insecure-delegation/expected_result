@@ -1,0 +1,4 @@
+9f8hti7cc7oqnqjv84klnp89glqrss3r.example.com. 120 IN NSEC3 1 0 1 abcd 9fdaofplln0fqfu9dp274gou59qfhsld A RRSIG 
+; Existence denied for usa.example.com. DS
+t67rqvqprigd7rtb5fah6c3o7g9th3j0.example.com. 120 IN NSEC3 1 0 1 abcd t6a44a7n1b90t5ris4ibqkt51mmdl0lo NS RRSIG 
+vtnq6ocn2vkuiv3nju14oqtaen2mt5sk.example.com. 120 IN NSEC3 1 0 1 abcd vtp9nuqbeh436s7j0k8ti2a32mmkcuul NS SOA MX RRSIG DNSKEY NSEC3PARAM 

@@ -1,0 +1,2 @@
+For an insecure delegation the resolver will ask for a non-existing
+DS. This test verifies that the NSEC3 proof is valid.

@@ -1,5 +1,7 @@
 diff
-real_result
+real_result*
+testresults-*.xml
+unbound-host.conf
 /dnssec-validation-failures
 /skipped_tests
 /trustedkeys

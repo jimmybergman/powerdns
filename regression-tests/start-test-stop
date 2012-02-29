@@ -79,7 +79,7 @@ __EOF__
 			for zone in $(grep zone named.conf  | cut -f2 -d\")
 			do
 				../pdns/pdnssec --config-dir=. --config-name=gmysql	secure-zone $zone 2>&1
-				../pdns/pdnssec --config-dir=. --config-name=gmysql	set-nsec3 $zone '1 1 1 abcd' 2>&1
+				../pdns/pdnssec --config-dir=. --config-name=gmysql	set-nsec3 $zone '1 0 1 abcd' 2>&1
 				../pdns/pdnssec --config-dir=. --config-name=gmysql	rectify-zone $zone 2>&1
 			done
 
