@@ -1,9 +1,15 @@
 AM_CXXFLAGS=-DSYSCONFDIR=\"@sysconfdir@\" -DLIBDIR=\"@libdir@\" -DLOCALSTATEDIR=\"@socketdir@\" -Ibackends/bind @THREADFLAGS@ $(LUA_CFLAGS) -Iext/polarssl-1.1.1/include
 AM_CPPFLAGS=-Ibackends/bind $(BOOST_CPPFLAGS) @THREADFLAGS@
 
-EXTRA_DIST = dnslabeltext.rl dnslabeltext.cc mtasker.cc inflighter.cc docs/pdns_control.8  docs/pdns_server.8 docs/zone2sql.8 docs/zone2ldap.8 docs/pdnssec.8
+EXTRA_DIST = dnslabeltext.rl dnslabeltext.cc mtasker.cc inflighter.cc docs/pdns_control.8  \
+	docs/pdns_server.8 docs/zone2sql.8 docs/zone2ldap.8 docs/pdnssec.8 \
+	dnssec.schema.mysql.sql dnssec.schema.pgsql.sql dnssec.schema.sqlite3.sql \
+	no-dnssec.schema.mysql.sql no-dnssec.schema.pgsql.sql no-dnssec.schema.sqlite3.sql \
+	bind-dnssec.schema.sqlite3.sql
 
 SUBDIRS= ext/polarssl-1.1.1 backends 
+
+BUILT_SOURCES=bind-dnssec.schema.sqlite3.sql.h
 
 noinst_SCRIPTS = pdns
 sysconf_DATA = pdns.conf-dist 
@@ -30,7 +36,7 @@ dynlistener.cc dynlistener.hh  dynhandler.cc dynhandler.hh  \
 resolver.hh resolver.cc slavecommunicator.cc mastercommunicator.cc communicator.cc communicator.hh dnsproxy.cc \
 dnsproxy.hh randombackend.cc unix_utility.cc common_startup.cc \
 utility.hh iputils.hh common_startup.hh unix_semaphore.cc \
-backends/bind/bindbackend2.cc  \
+backends/bind/bindbackend2.cc  backends/bind/binddnssec.cc bind-dnssec.schema.sqlite3.sql.h \
 backends/bind/bindparser.cc backends/bind/bindlexer.c \
 backends/gsql/gsqlbackend.cc \
 backends/gsql/gsqlbackend.hh backends/gsql/ssql.hh \
@@ -69,12 +75,13 @@ pdnssec_SOURCES=pdnssec.cc dbdnsseckeeper.cc sstuff.hh dnsparser.cc dnsparser.hh
         misc.cc misc.hh rcpgenerator.cc rcpgenerator.hh base64.cc base64.hh unix_utility.cc \
 	logger.cc statbag.cc qtype.cc sillyrecords.cc nsecrecords.cc dnssecinfra.cc dnssecinfra.hh \
         base32.cc  ueberbackend.cc dnsbackend.cc arguments.cc packetcache.cc dnspacket.cc  \
-        backends/bind/bindbackend2.cc  \
+        backends/bind/bindbackend2.cc backends/bind/binddnssec.cc  bind-dnssec.schema.sqlite3.sql.h\
 	backends/bind/bindparser.cc backends/bind/bindlexer.c \
 	backends/gsql/gsqlbackend.cc \
 	backends/gsql/gsqlbackend.hh backends/gsql/ssql.hh zoneparser-tng.cc \
 	dynlistener.cc dns.cc randombackend.cc dnssecsigner.cc polarrsakeyinfra.cc md5.cc \
-	signingpipe.cc dnslabeltext.cc ednssubnet.cc cachecleaner.hh
+	signingpipe.cc dnslabeltext.cc ednssubnet.cc cachecleaner.hh 
+
 
 pdnssec_LDFLAGS=@moduleobjects@ @modulelibs@ @DYNLINKFLAGS@ @LIBDL@ @THREADFLAGS@  $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_SERIALIZATION_LDFLAGS)
 pdnssec_LDADD= ext/polarssl-1.1.1/library/libpolarssl.a $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_SERIALIZATION_LIBS)
@@ -215,6 +222,10 @@ pdns_control_LDFLAGS=@THREADFLAGS@
 
 dnslabeltext.cc: dnslabeltext.rl
 	ragel dnslabeltext.rl -o dnslabeltext.cc
+
+bind-dnssec.schema.sqlite3.sql.h: bind-dnssec.schema.sqlite3.sql
+	( echo 'static char sqlCreate[]=' ; sed 's/$$/"/g' ../../bind-dnssec.schema.sqlite3.sql | sed 's/^/"/g'  ; echo ';' ) > $@
+
 	
 backends/bind/%:
 	make -C backends/bind $(@F)

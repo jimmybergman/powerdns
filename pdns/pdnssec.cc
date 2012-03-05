@@ -12,6 +12,7 @@
 #include "zoneparser-tng.hh"
 #include "signingpipe.hh"
 #include <boost/scoped_ptr.hpp>
+#include "bindbackend2.hh"
 
 StatBag S;
 PacketCache PC;
@@ -144,7 +145,8 @@ void rectifyZone(DNSSECKeeper& dk, const std::string& zone)
     else {
       if(!narrow) {
         hashed=toLower(toBase32Hex(hashQNameWithSalt(ns3pr.d_iterations, ns3pr.d_salt, qname)));
-        cerr<<"'"<<qname<<"' -> '"<< hashed <<"'"<<endl;
+        if(g_verbose)
+          cerr<<"'"<<qname<<"' -> '"<< hashed <<"'"<<endl;
       }
       sd.db->updateDNSSECOrderAndAuthAbsolute(sd.domain_id, qname, hashed, auth);
     }
@@ -432,6 +434,7 @@ try
     cerr<<"             [rsasha1|rsasha256|rsasha512|gost|ecdsa256|ecdsa384]\n";
     cerr<<"                                 Add a ZSK or KSK to zone and specify algo&bits\n";
     cerr<<"check-zone ZONE                  Check a zone for correctness\n";
+    cerr<<"create-bind-db FNAME             Create DNSSEC db for BIND backend (bind-dnssec-db)\n"; 
     cerr<<"deactivate-zone-key ZONE KEY-ID  Deactivate the key with key id KEY-ID in ZONE\n";
     cerr<<"disable-dnssec ZONE              Deactivate all keys and unset PRESIGNED in ZONE\n";
     cerr<<"export-zone-dnskey ZONE KEY-ID   Export to stdout the public DNSKEY described\n";
@@ -459,6 +462,23 @@ try
 
   loadMainConfig(g_vm["config-dir"].as<string>());
   reportAllTypes();
+  
+  
+  if(cmds[0] == "create-bind-db") {
+    if(cmds.size() != 2) {
+      cerr << "Syntax: pdnssec create-bind-db fname"<<endl;
+      return 0;
+    }
+    try {
+      Bind2Backend::createDNSSECDB(cmds[1]);
+    }
+    catch (AhuException& ae) {
+      cerr<<"Error: "<<ae.reason<<endl;
+      return 1;
+    }
+    return 0;
+  }
+  
   DNSSECKeeper dk;
 
   if(cmds[0] == "rectify-zone") {
