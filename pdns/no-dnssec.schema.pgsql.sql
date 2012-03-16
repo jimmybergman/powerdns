@@ -14,13 +14,14 @@ CREATE TABLE records (
         domain_id       INT DEFAULT NULL,
         name            VARCHAR(255) DEFAULT NULL,
         type            VARCHAR(10) DEFAULT NULL,
-        content         VARCHAR(4096) DEFAULT NULL,
+        content         VARCHAR(65535) DEFAULT NULL,
         ttl             INT DEFAULT NULL,
         prio            INT DEFAULT NULL,
         change_date     INT DEFAULT NULL, 
         CONSTRAINT domain_exists 
         FOREIGN KEY(domain_id) REFERENCES domains(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+        CONSTRAINT c_lowercase_name CHECK (((name)::text = lower((name)::text)))
 );
 
 CREATE INDEX rec_name_index ON records(name);
