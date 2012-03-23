@@ -96,6 +96,48 @@
 	Beyond PowerDNS 2.9.20, the Authoritative Server and Recursor are released separately.
       </para>
       <sect2 id="changelog-auth-3-1"><title>PowerDNS Authoritative Server 3.1 (UNRELEASED)</title>
+     <warning><para>Version 3.1 of the PowerDNS Authoritative Server is a major upgrade if you are coming from 2.9.x.
+	Please refer to <xref linkend="from2.9to3.0"/> and <xref linkend="from3.0to3.1"/> for important information on 
+	correct and stable operation, as well as notes on performance and memory use.</para>
+      </warning>
+      <note><para>RC1 released on the 23th of March 2012</para>
+      </note>
+      <note><para>Downloads:
+      	<itemizedlist>
+      		<listitem>
+      			<para>
+      				<ulink url="http://powerdnssec.org/downloads/pdns-3.1-rc1.tar.gz">pdns-3.1-rc1.tar.gz</ulink>
+      			</para>
+      		</listitem>
+      		<listitem>
+      			<para>
+      				<ulink url="http://powerdnssec.org/downloads/packages/pdns-static-3.1rc1-1.i386.rpm">pdns-static-3.1rc1-1.i386.rpm</ulink>
+      			</para>
+      		</listitem>
+      		<listitem>
+      			<para>
+      				<ulink url="http://powerdnssec.org/downloads/packages/pdns-static-3.1rc1-1.x86_64.rpm">pdns-static-3.1rc1-1.x86_64.rpm</ulink>
+      			</para>
+      		</listitem>
+      		<listitem>
+      			<para>
+      				<ulink url="http://powerdnssec.org/downloads/packages/pdns-static_3.1-rc1-1_amd64.deb">pdns-static_3.1-rc1-1_amd64.deb</ulink>
+      			</para>
+      		</listitem>
+      		<listitem>
+      			<para>
+      				<ulink url="http://powerdnssec.org/downloads/packages/pdns-static_3.1-rc1-1_i386.deb">pdns-static_3.1-rc1-1_i386.deb</ulink>
+      			</para>
+      		</listitem>
+      	</itemizedlist>
+      </para>
+  </note>
+  
+
+
+
+
+
       <para>
 	Version 3.1 of the PowerDNS Authoritative Server represents the 'coming of age' of our DNSSEC implementation. 
 	In addition, 3.1 solves a lot of '.0' issues typically associated with a major new release.
@@ -116,17 +158,40 @@
 	with full DNSSEC tests!
       </para>
       <para>
+      You can find tar.gz and static packages at <ulink url="http://powerdnssec.org/downloads/">powerdnssec.org/downloads/</ulink>.
+  </para>
+      <para>
 	DNSSEC related fixes:
 	<itemizedlist>
+		<listitem>
+			<para>
+			When slaving zones, PowerDNS now automatically detects that a zone is presigned. Code in c2502, closing t369, t392.
+			</para>
+		</listitem>
+	  <listitem>
+		<para>
+		  The bindbackend can now manage its own SQLite3 database to store key data, removing the need to run it with a gsql backend. Code in c2448, c2449, c2450, c2451, c2452, c2453, c2455, c2482, c2496, c2499.
+		</para>
+	</listitem>
 	  <listitem>
 	    <para>
-	      NSEC/NSEC3 logic for picking 'boundary' names was tricky, and got it wrong in some cases. Fix in c2289.
+	      NSEC/NSEC3 logic for picking 'boundary' names was tricky, and got it wrong in some cases. Fixes in c2289, c2429, c2435 and c2473.
 	    </para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+  		  The subtle differences between 'what records get NSEC', 'what records get NSEC3' and 'what records should get signed' did not translate well to the SQL auth column. We now use 'ordername IS NULL' to map the whole spectrum. Code in c2477, c2480, c2492.
+  		</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  Pre-signed AXFR output, although correct, was different from our query responses. Rectified in c2477.
+	  	</para>
 	  </listitem>
 	  <listitem>
 	    <para>
 	      Spotted &amp; fixed by Jimmy Bergman of Atomia, CNAMEs and RRSIGs could have bad interactions. Fix in c2314, 
-	      further refined in c2318.
+	      further refined in c2318. Closes t411.
 	    </para>
 	  </listitem>
 	   <listitem>
@@ -140,6 +205,16 @@
 	      because of record jumbling. Fix in c2381.
 	    </para>
 	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  Several fixes to handling of DS queries, in c2420, c2510, c2512.
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  We now lowercase the signer name in an RRSIG. This is not mandated by DNSSEC specification but it improves compatibility with some validators. Fix in c2426.
+	  	</para>
+	  </listitem>
 	</itemizedlist>
       </para>
       <para>
@@ -148,7 +223,7 @@
 	  <listitem>
 	    <para>
 	      Winfried Angele discovered we would open an additional backend connection per zone in the BIND backend.
-	      This only impacted users with multiple simultaneous backends. Fix in c2253.
+	      This only impacted users with multiple simultaneous backends. Fix in c2253, closing t383.
 	    </para>
 	  </listitem>
 	  <listitem>
@@ -159,7 +234,7 @@
 	  </listitem>
 	  <listitem>
 	    <para>
-	      Wildcards in the presence of delegations were broken. Reported by a cast of thousands. Fix &amp; regression test in c2368.
+	      Wildcards in the presence of delegations were broken. Reported by a cast of thousands. Fix &amp; regression test in c2368. Closes t389.
 	    </para>
 	  </listitem>
 	   <listitem>
@@ -185,7 +260,7 @@
 	  </listitem> 
 	   <listitem>
 	    <para>
-	      Fix compilation against older versions of MySQL that do not have MYSQL_OPT_RECONNECT. c2264.
+	      Fix compilation against older versions of MySQL that do not have MYSQL_OPT_RECONNECT. c2264, closing t378.
 	    </para>
 	  </listitem> 
 	   <listitem>
@@ -195,7 +270,7 @@
 	  </listitem> 
 	  <listitem>
 	    <para>
-	      'pdnssec' did not work for records with NULL ttls. Fixed in c2266.
+	      'pdnssec' did not work for records with NULL ttls. Fixed in c2266, closing t432.
 	    </para>
 	  </listitem> 
 	  <listitem>
@@ -243,7 +318,7 @@
 	  <listitem>
 	    <para>
 	      BIND backend would leak an fd when including a configuration file from named.conf. Spotted
-	      and fixed by Hannu Ylitalo of Nebula Oy in c2359.
+	      by Hannu Ylitalo of Nebula Oy in c2359.
 	    </para>
 	  </listitem>  
 	  <listitem>
@@ -257,21 +332,53 @@
 	      './configure --enable-verbose-logging' was broken, fixed in c2312.
 	    </para>
 	  </listitem>  
+	  <listitem>
+	    <para>
+	      PowerDNS would serve up old SOA data immediately after sending out a notification. Complicated bug
+	      documented perfectly in t427, which also came with not one but with two different patches to fix the problem.
+	      Thanks to Keith Buck. Code in c2408.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Flag '--start-id' in zone2sql was not functional. Removed for now in c2387, closing t332.
+	    </para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  Our distribution tarball did not have the SQL schemas. Fixed in c2459 and c2460.
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		"Empty" MX records would confuse one of our parsers. Fixed in c2468, closing Debian bug 533023.
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		The pdns.conf 'wildcards'-setting did not do anything in 3.0, so it was removed. Change in c2508, c2509.
+	  	</para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Additional processing based on records loaded by the BIND backend might fail because of a trailing dot mismatch. Fix in c2398.
+	    </para>
+	  </listitem>
 	</itemizedlist>
       </para>
       <para>
 	New features:
 	<itemizedlist>
+
 	<listitem>
-	    <para>
-	      Per-zone AXFR ACLs, based on the allow-axfr-ips zone metadata item. Code in c2274. Also, remove
-	      some remains of our previous approach to supporting this in c2326.
-	    </para>
-	  </listitem>
+	  <para>
+	    Per-zone AXFR ACLs, based on the allow-axfr-ips zone metadata item. Code in c2274. Also, remove
+	    some remains of our previous approach to supporting this in c2326.
+	  </para>
+	</listitem>
 	  <listitem>
 	    <para>
-	      Alberto Donato and Zsolt Dollenstein implemented autoserial support for the Generic SQL backends. Code in c2290, c2294, c2296, c2299, 
-	      c2300, c2303.
+	      Alberto Donato and Zsolt Dollenstein implemented autoserial support for the Generic SQL backends. Code in c2290, c2294, c2296, c2299, c2300, c2303. Closes t52, t299, t301, t336.
 	    </para>
 	  </listitem>
 	   <listitem>
@@ -282,38 +389,73 @@
 	  </listitem>
 	  <listitem>
 	    <para>
-	      Flag '--start-id' in zone2sql was not functional. Removed for now in c2387, closing t332.
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
 	      Newlines in the 'content' field of backends are now allowed, restoring some DKIM setups to working condition.
 	      Update in c2394, closing t395.
 	    </para>
 	  </listitem>
-	  <listitem>
-	    <para>
-	      Additional processing based on records loaded by the BIND backend might fail because of a trailing dot mismatch. Fix in c2398.
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      Depending on the encoding used, MySQL could take issue with our 'tsigkeys' table which contained very large rows. Trimmed in c2400,
-	      closing t410.
-	    </para>
-	  </listitem>
-	  <listitem>
-	    <para>
-	      PowerDNS would serve up old SOA data immediately after sending out a notification. Complicated bug
-	      documented perfectly in t427, which also came with not one but with two different patches to fix the problem.
-	      Thanks to Keith Buck. Code in c2408.
-	    </para>
-	  </listitem>
+
+
 	</itemizedlist>
       </para>
       <para>
 	Improvements:
 	<itemizedlist>
+	 	<listitem>
+	    <para>
+	      Depending on the encoding used, MySQL could take issue with our 'tsigkeys' table which contained very large rows. Trimmed in c2400,
+	      closing t410.
+	    </para>
+	  </listitem>
+		<listitem>
+			<para>
+				Various build/configure-related fixes in c2319, c2373, c2386, closing t380, t405, t420.
+			</para>
+		</listitem>
+		<listitem>
+			<para>
+				We now show the SOA serial after zone transfers. Code in c2385, closing t416.
+			</para>
+		</listitem>
+		<listitem>
+			<para>
+			Ruben d'Arco submitted a full rework of our slave-side AXFR TSIG handling, closing t393 and t400 in the process. Code in c2506. Additional improvement in c2513.
+			</para>
+		</listitem>
+		<listitem>
+			<para>
+				The records.name-column in the gpgsql schema is now constrained to lowercase, as PowerDNS would be unable to find other entries anyway. Fix in c2503, closing t426.
+			</para>
+		</listitem>
+	  <listitem>
+	  	<para>
+	  	  The gsql-backends can now handle huge records, thanks to a patch by Ruben d'Arco. Code in c2476, closing t407. Additional changes in c2292, c2487, c2489. Closes t218, t316.
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  Some of PowerDNS' internal classes would work with uninitialized data when repurposed outside of the PowerDNS core logic. Fix in c2469, 
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  pdnssec now has 'check-all-zones' and 'rectify-all-zones' commands. Submitted by Ruben d'Arco, code in c2467.
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  	  'restart' in our init.d-script would not start pdns if it was down before. Fixed in c2462.
+	  	</para>
+	  </listitem>
+      <listitem>
+		<para>
+		  'pdnssec rectify-zone' now honours --verbose and is rather quiet without it. Code in c2443.
+		</para>
+	  </listitem>
+      <listitem>
+		<para>
+		  Improved error messages for systems without IPv6. Changes in c2425.
+		</para>
+	  </listitem>
 	  <listitem>
 	    <para>
 	      The packet- and querycache now honour TTLs from backend data. Code in c2414.
@@ -321,7 +463,7 @@
 	  </listitem>
 	  <listitem>
 	    <para>
-	      'pdns_control help' now shows useful usage information. Code in c2410.
+	      'pdns_control help' now shows useful usage information. Code in c2410 and c2465.
 	    </para>
 	  </listitem>
 	  <listitem>
@@ -380,6 +522,11 @@
 	    </para>
 	  </listitem>
 	  <listitem>
+	  	<para>
+	  	  We would not always drop supplemental groups correctly. Reported by David Black.
+	  	</para>
+	  </listitem>
+	  <listitem>
 	    <para>
 	      Our regression tests have been strenghtened a lot, and now cover way more features. Commits in C2280, C2281, C2282, C2317, C2348,
 	      C2349, C2350, C2351 and beyond.
@@ -392,7 +539,7 @@
 	  </listitem>
 	   <listitem>
 	    <para>
-	      Compilation on OpenBSD was eased by patches from Brad Smith, which can be found in c2288 and c2291.
+	      Compilation on OpenBSD was eased by patches from Brad Smith, which can be found in c2288 and c2291, closing t95.
 	    </para>
 	  </listitem>
 	  <listitem>
@@ -407,7 +554,7 @@
 	  </listitem>
 	  <listitem>
 	    <para>
-	      Documentation typos, Jake Spencer (c2304), Jose Arthur Benetasso Villanova (c2337). Code typos in c2324.
+	      Documentation typos, Jake Spencer (c2304), Jose Arthur Benetasso Villanova (c2337). Code typos in c2324 (closes t296).
 	    </para>
 	  </listitem>
 	   <listitem>
@@ -480,13 +627,88 @@
 	  </listitem>
 	</itemizedlist>
       </para>
+    <para>
+      Other changes:
+       <itemizedlist>
+       	 <listitem>
+       	 	<para>
+       	 		Removed the deprecated non-generic mysqlbackend, in c2488, c2514, c2515.
+       	 	</para>
+       	 </listitem>
+       	 <listitem>
+       	 	<para>
+       	 		Removed the deprecated 'pdnsbackend', in c2490, c2516.
+       	 	</para>
+       	 </listitem>
+       	 <listitem>
+       	 	<para>
+       	 		Removed GRANT statements from the gpgsql schema, as we can't assume they will work for everyone. Change in c2493.
+       	 	</para>
+       	 </listitem>
+       	</itemizedlist>
+       </para>
       <para>
 	Tickets closed but not associated with a commit:
 	<itemizedlist>
 	<listitem>
 	    <para>
-	      Upcoming.
+	      t125: "PowerDNS offers wild card info. when it is not queried for."
 	    </para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t219: "Accept NOTIFY from masters on non-standard port"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t247: "pdns caching weirdness with recursion-desired flag"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t253: "bind backend crashes on long comment line in included file"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t271: "PowerDNS Server responding with out-of-zone authority section in case there is a cname"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t304: "also-notify option for pdns, also gives also-notify for bindbackend."
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t311: "PowerDNSSEC responding with SERVFAIL upon IN A query for a CNAME"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t325: "CNAME working strange!"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t376: "Unable to create long TXT records"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t412: "--without-lua doesn't disable lua"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t415: "Signing thread died during AXFR of signed domain"
+	  	</para>
+	  </listitem>
+	  <listitem>
+	  	<para>
+	  		t422: "ecdsa256 keys bug"
+	  	</para>
 	  </listitem>
 	</itemizedlist>
       </para>
@@ -9049,7 +9271,7 @@ name         IN            A        1.2.3.4
 
 	<warning>
 	  <para>
-	    As of 2.9.21, the BIND backend no longer features the 'bind-example-zones' command. These will return in 2.9.22.
+	    As of 2.9.21, the BIND backend no longer features the 'bind-example-zones' command.
 	  </para>
 	</warning>
 
@@ -9275,6 +9497,11 @@ name         IN            A        1.2.3.4
 <chapter id="windows">
   <title>Installing on Microsoft Windows</title>
     <para>
+    <warning>
+    	<para>
+    		As of 3.0 and up, Windows support is untested and probably does not work at all.
+    	</para>
+    </warning>
     <note>
       <para>
 	  PowerDNS support for Windows is, as of 1.99.12, very recent and therefore quite 'beta'. For reliability, we currently advise the use of 
@@ -9311,7 +9538,7 @@ name         IN            A        1.2.3.4
 
   <para>
     When you are in the ODBC sources dialog you activate the <filename>System DSN</filename> tab. 
-    <note><para>It is important to create a System DSN instead of an User DNS, otherwise the ODBC backend cannot function.</para></note>
+    <note><para>It is important to create a System DSN instead of an User DSN, otherwise the ODBC backend cannot function.</para></note>
   </para>
 
   <para>
@@ -9408,7 +9635,7 @@ name         IN            A        1.2.3.4
 	launch=gmysql
 	gmysql-host=127.0.0.1
 	gmysql-user=root
-	gmysql-dbname=pdnstest
+	gmysql-dbname=pdns
       </screen>
       
       Remove any earlier <command>launch</command> statements. Also remove the <command>bind-example-zones</command>
@@ -9425,6 +9652,7 @@ name         IN            A        1.2.3.4
 	<para>
 	  Be very very sure that you configure the *g*mysql backend and not the mysql backend. See
 	  <xref linkend="generic-mypgsql-backends"/>. If you use the 'mysql' backend things will only appear to work.
+	  (The 'mysql' backend was removed in version 3.1).
 	</para>
       </warning>
     </para>
@@ -9434,9 +9662,9 @@ name         IN            A        1.2.3.4
 	# /etc/init.d/pdns monitor
 	(...)
 	15:31:30 About to create 3 backend threads
-	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdnstest'
-	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdnstest'
-	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdnstest'
+	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdns'
+	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdns'
+	15:31:30 [gMySQLbackend] Failed to connect to database: Error: Unknown database 'pdns'
       </screen>
       
       This is as to be expected - we did not yet add anything to MySQL for PDNS to read from. At this point you may also see
@@ -9449,41 +9677,8 @@ name         IN            A        1.2.3.4
     <sect1 id="configuring-mysql"><title>Example: configuring MySQL</title>
       <para>
 	Connect to MySQL as a user with sufficient privileges and issue the following commands:
-	<screen>
-create table domains (
- id		 INT auto_increment,
- name		 VARCHAR(255) NOT NULL,
- master		 VARCHAR(128) DEFAULT NULL,
- last_check	 INT DEFAULT NULL,
- type		 VARCHAR(6) NOT NULL,
- notified_serial INT DEFAULT NULL, 
- account         VARCHAR(40) DEFAULT NULL,
- primary key (id)
-) Engine=InnoDB;
-
-CREATE UNIQUE INDEX name_index ON domains(name);
-
-CREATE TABLE records (
-  id              INT auto_increment,
-  domain_id       INT DEFAULT NULL,
-  name            VARCHAR(255) DEFAULT NULL,
-  type            VARCHAR(10) DEFAULT NULL,
-  content         VARCHAR(4096) DEFAULT NULL,
-  ttl             INT DEFAULT NULL,
-  prio            INT DEFAULT NULL,
-  change_date     INT DEFAULT NULL,
-  primary key(id)
-) Engine=InnoDB;
-
-CREATE INDEX rec_name_index ON records(name);
-CREATE INDEX nametype_index ON records(name,type);
-CREATE INDEX domain_id ON records(domain_id);
-
-create table supermasters (
-  ip VARCHAR(25) NOT NULL, 
-  nameserver VARCHAR(255) NOT NULL, 
-  account VARCHAR(40) DEFAULT NULL
-) Engine=InnoDB;
+   <programlisting><xi:include  href="../no-dnssec.schema.mysql.sql"  parse="text"  xmlns:xi="http://www.w3.org/2001/XInclude"/></programlisting>
+   	<screen>
 
 GRANT SELECT ON supermasters TO pdns;
 GRANT ALL ON domains TO pdns;
@@ -9667,7 +9862,7 @@ GRANT ALL ON records TO pdns;
           </listitem>
         </itemizedlist>
 
-        For more information about how to write exciting backends with the PipeBackend, see Appendix A.
+        For more information about how to write exciting backends with the PipeBackend, see <xref linkend="pipebackend" />.
       </para>
     </sect1>
   </chapter>
@@ -9932,7 +10127,7 @@ local0.err                        /var/log/pdns.err
 	or 'sa' user, and configure the chosen user to have very slight privileges.
       </para>
       <para>
-	Databases empathic-ally do not need to run on the same machine that runs PDNS! In fact, in benchmarks
+	Databases empathically do not need to run on the same machine that runs PDNS! In fact, in benchmarks
 	it has been discovered that having a separate database machine actually improves performance.
       </para>
       <para>
@@ -10032,10 +10227,6 @@ local0.err                        /var/log/pdns.err
     <para>
       To determine if PDNS is unable to keep up with packets, determine the value of the <command>qsize-q</command> variable. 
       This represents the number of packets waiting for database attention. During normal operations the queue should be small. 
-    </para>
-    <para>
-      If it is known that backends will not contain CNAME records, the <command>skip-cname</command> setting can be used to prevent 
-      the normally mandatory CNAME lookup that is needed at least once for each DNS query. 
     </para>
 
     <para>
@@ -10205,14 +10396,6 @@ local0.err                        /var/log/pdns.err
 	    </listitem>
 	  </varlistentry>
 	  <varlistentry>
-	    <term>--startid</term>
-	    <listitem>
-	      <para>
-		Supply a value for the first domain_id generated. Defaults at 0.
-	      </para>
-	    </listitem>
-	  </varlistentry>
-	  <varlistentry>
 	    <term>--transactions</term>
 	    <listitem>
 	      <para>
@@ -10355,6 +10538,31 @@ local0.err                        /var/log/pdns.err
 	</variablelist>
     </para>
   </sect2>
+  </sect1>
+  <sect1 id="from3.0to3.1"><title>From PowerDNS Authoritative Server 3.0 to 3.1</title>
+    <note>
+    	<para>
+    		If you are coming from 2.9.x, please also read <xref linkend="from2.9to3.0" />.
+    	</para>
+    </note>
+    <para>
+    	PowerDNS 3.1 introduces native SQLite3 support for storing key material for DNSSEC in the bindbackend. With this change,
+    	support for bind+gsql-setups ('hybrid mode') has been dropped. If you were using this mode, you will need to switch to
+    	bind-dnssec-db and migrate your keying material.
+    </para>
+    <para>
+    	There have been changes to the SQL schemas for the generic backends.
+    </para>
+    <para>
+    	For MySQL:
+    	<screen>
+    		mysql> ALTER TABLE records MODIFY content VARCHAR(64000);
+    		mysql> ALTER TABLE tsigkeys MODIFY algorithm VARCHAR(50);
+    	</screen>
+    </para>
+    <para>
+    	The definition of 'auth' and 'ordername' in backends has changed slightly, see <xref linkend="dnssec-direct-database" />.
+    </para>
   </sect1>
   </chapter>
   <chapter id="powerdnssec-auth">
@@ -10966,7 +11174,27 @@ $ pdnssec rectify-zone powerdnssec.org
       that all DNSSEC-related fields are set correctly.
     </para>
   </section>
-  <section id="dnssec-bind-hybrid"><title>PowerDNSSEC hybrid BIND-mode operation</title>
+  <section id="dnssec-bind"><title>PowerDNSSEC BIND-mode operation</title>
+  <para>
+  	Starting with PowerDNS 3.1, the bindbackend can manage keys in an SQLite3 database without launching
+  	a separate gsqlite3 backend.
+  </para>
+  <para>
+  	To use this mode, add "bind-dnssec-db=/var/db/bind-dnssec-db.sqlite3" to pdns.conf, and run
+  	"pdnssec create-bind-db /var/db/bind-dnssec-db.sqlite3". Then, restart PowerDNS.
+  </para>
+  <para>
+  	After this, you can use "pdnssec secure-zone" and all other pdnssec commands on your BIND zones
+  	without trouble.
+  </para>
+</section>
+  	<section id="dnssec-bind-hybrid"><title>PowerDNSSEC hybrid BIND-mode operation</title>
+    <warning>
+    <para>
+      This mode is only supported in 3.0 and 3.0.1! In 3.1 and up, the bindbackend
+      always does its own key storage.
+    </para>
+    </warning>
     <para>
       PowerDNS can also operate based on 'BIND'-style zone &amp; configuration files. This 'bindbackend'
       has full knowledge of DNSSEC, but has no native way of storing keying material.
@@ -11000,7 +11228,7 @@ $ pdnssec rectify-zone powerdnssec.org
     on an incoming zone transfer, and also by running 'pdnssec rectify-zone', or 'zone2sql' with the --dnssec flag.
     </para>
     <para>The 'auth' field should be set to '1' for 
-    data for which is itself authoritative, which includes the SOA record and its own NS records. 
+    data for which the zone itself is authoritative, which includes the SOA record and its own NS records. 
   </para>
   <para>
     The 'auth' field should be 0 however for NS records which are used for delegation, and also for any glue (A, AAAA) records
@@ -11008,7 +11236,9 @@ $ pdnssec rectify-zone powerdnssec.org
   </para>
   <para>
     The 'ordername' field needs to be filled out depending on the NSEC/NSEC3 mode. When running in NSEC3 'Narrow' mode,
-    the ordername field is ignored and best left empty.
+    the ordername field is ignored and best left empty. In NSEC mode, the ordername field should be NULL for any glue but filled in
+    for delegation NS records and all authoritative records. In NSEC3 opt-out mode (the only NSEC3 mode PowerDNS currently
+    supports), any non-authoritative records (as described for the 'auth' field) should have ordername set to NULL.
   </para>
   <para>
     In 'NSEC' mode, it should contain the <emphasis>relative</emphasis> part of a domain name, in reverse order, with dots replaced
@@ -11019,7 +11249,7 @@ $ pdnssec rectify-zone powerdnssec.org
     of the full record name. <command>pdnssec hash-zone-record zone record</command> can be used to calculate this hash.
   </para>
   </section>
-  </section>
+</section>
   <section id="dnssec-security"><title>Security</title>
   <para>
     During typical PowerDNSSEC operation, the private part of the signing keys are 'online', which can be compared
@@ -13183,10 +13413,6 @@ To enable a Lua script for a particular slave zone, determine the domain_id for 
 	  <varlistentry><term>setuid=...</term>
 	    <listitem><para>
 		If set, change user id to this uid for more security. See <xref linkend="security"/>.
-	      </para></listitem></varlistentry>
-	  <varlistentry><term>skip-cname | --skip-cname=yes | --skip-cname=no</term>
-	    <listitem><para>
-		Do not perform CNAME indirection for each query. Has performance implications. See <xref linkend="performance"/>.
 	      </para></listitem></varlistentry>
 	  <varlistentry><term>slave-cycle-interval=60</term>
 	    <listitem><para>
@@ -17047,10 +17273,6 @@ VALUES (:zoneid, :ip)
       </para>
       <para>
 	If no SOA was found, an unauthoritative no-error is returned.
-      </para>
-      <para>
-	In reality, each query for a question tuple first involves checking for a CNAME, unless that resolution has been disabled with the
-	<command>skip-cname</command> option.
       </para>
       <para>
 	PDNS breaks strict RFC compatibility by not always checking for the presence of a SOA record first. This is unlikely to lead to 
