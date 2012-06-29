@@ -54,6 +54,7 @@ DNSPacket::DNSPacket()
   d_wantsnsid=false;
   d_haveednssubnet = false;
   d_dnssecOk=false;
+  d_wantsedns=false;
 }
 
 const string& DNSPacket::getString()
@@ -89,6 +90,7 @@ DNSPacket::DNSPacket(const DNSPacket &orig)
   d_maxreplylen = orig.d_maxreplylen;
   d_ednsping = orig.d_ednsping;
   d_wantsnsid = orig.d_wantsnsid;
+  d_wantsedns = orig.d_wantsedns;
   
   d_eso = orig.d_eso;
   d_haveednssubnet = orig.d_haveednssubnet;
@@ -281,7 +283,7 @@ void DNSPacket::wrapup()
   }
   
   
-  if(!d_rrs.empty() || !opts.empty() || d_haveednssubnet) {
+  if(d_wantsedns || !d_rrs.empty() || !opts.empty() || d_haveednssubnet || d_dnssecOk) {
     try {
       uint8_t maxScopeMask=0;
       for(pos=d_rrs.begin(); pos < d_rrs.end(); ++pos) {
@@ -318,7 +320,7 @@ void DNSPacket::wrapup()
         opts.push_back(make_pair(::arg().asNum("edns-subnet-option-number"), opt));
       }
 
-      if(!opts.empty() || d_dnssecOk)
+      if(!opts.empty() || d_dnssecOk || d_wantsedns)
         pw.addOpt(2800, 0, d_dnssecOk ? EDNSOpts::DNSSECOK : 0, opts);
 
       if(!pw.getHeader()->tc) // protect against double commit from addSignature
@@ -373,6 +375,7 @@ DNSPacket *DNSPacket::replyPacket() const
   r->d_maxreplylen = d_maxreplylen;
   r->d_ednsping = d_ednsping;
   r->d_wantsnsid = d_wantsnsid;
+  r->d_wantsedns = d_wantsedns;
   r->d_dnssecOk = d_dnssecOk;
   r->d_eso = d_eso;
   r->d_haveednssubnet = d_haveednssubnet;
@@ -477,9 +480,11 @@ try
   d_ednsping.clear();
   d_havetsig = mdp.getTSIGPos();
   d_haveednssubnet = false;
+  d_wantsedns = false;
 
 
   if(getEDNSOpts(mdp, &edo)) {
+    d_wantsedns=true;
     d_maxreplylen=std::min(edo.d_packetsize, (uint16_t)1680);
 //    cerr<<edo.d_Z<<endl;
     if(edo.d_Z & EDNSOpts::DNSSECOK)
