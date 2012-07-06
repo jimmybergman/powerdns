@@ -95,6 +95,58 @@
       <para>
 	Beyond PowerDNS 2.9.20, the Authoritative Server and Recursor are released separately.
       </para>
+      <sect2 id="changelog-auth-3-1-1"><title>PowerDNS Authoritative Server 3.1.1</title>
+  	  <note>
+      	<para>RC1 released on the 2nd of July 2012</para>
+      </note>
+      <para>
+      	This is a maintenance update to the 3.1 release, fixing a few important issues.
+      </para>
+      <para>
+		Changes since 3.1, from most to least important:
+	    <itemizedlist>
+    	<listitem>
+	    	<para>
+	    		c2662/c2649: Make sure queries with EDNS also get EDNS in their response. Supposedly fixes interaction with BIND validators. Spotted by Mats Dufberg.
+	    	</para>
+	    </listitem>
+	    <listitem>
+	    	<para>
+	    		c2659/c2622: Stop tinydnsbackend from choking on request names longer than 64 bytes. Reported by PiZZaBoY, fixed by Ruben d'Arco.
+	    	</para>
+	    </listitem>
+	    <listitem>
+	    	<para>
+	    		c2654/c2609, c2657/c2612: obfuscate Postgres passwords in log messages. Reported by Stefan Kaltenbrunner.
+    		</para>
+		</listitem>
+		<listitem>
+			<para>
+				c2656/c2611: 3.1 accidentally shipped without Lua support. Reported by Jan-Piet Mens.
+			</para>
+		</listitem>
+    	<listitem>
+    		<para>
+    			c2663/c2651: "Did you mean check-zone?"
+    		</para>
+    	</listitem>
+    	<listitem>
+    		<para>
+    			c2658/c2614: the pdns.conf 'allow-recursion-override' is gone, as it did not do anything anyway.
+    		</para>
+    	</listitem>
+    	<listitem>
+    		<para>
+    			Plus other very minor fixes.
+    		</para>
+    	</listitem>
+
+    </itemizedlist>
+   	</para>
+
+	</sect2>
+
+
       <sect2 id="changelog-auth-3-1"><title>PowerDNS Authoritative Server 3.1</title>
      <warning><para>Version 3.1 of the PowerDNS Authoritative Server is a major upgrade if you are coming from 2.9.x. There are also some important changes if you are coming from 3.0.
 	Please refer to <xref linkend="from2.9to3.0"/> and <xref linkend="from3.0to3.1"/> for important information on 
@@ -868,20 +920,25 @@
       </sect2>
       <sect2 id="changelog-auth-3-0-1"><title>PowerDNS Authoritative Server 3.0.1</title>
       <para>
+        <warning><para>The DNSSEC implementation of PowerDNS Authoritative Server 3.0 and 3.0.1 contains many issues regarding
+    CNAMES, wildcards and (in)secure delegations. If you use any of these, and you use DNSSEC you MUST upgrade to 3.1 or beyond!</para></warning>
 	3.0.1 consists of 3.0, plus the patch from <xref linkend="powerdns-advisory-2012-01"/>
       </para>
       </sect2>
       <sect2 id="changelog-auth-3-0"><title>PowerDNS Authoritative Server 3.0</title>
       <para>
-	<warning><para>Version 3.0 of the PowerDNS Authoritative Server is a major upgrade.
-	Please refer to <xref linkend="from2.9to3.0"/> for important information on 
-	correct and stable operation, as well as notes on performance and memory use.</para>
+        <warning><para>Version 3.0 of the PowerDNS Authoritative Server is a major upgrade.
+          Please refer to <xref linkend="from2.9to3.0"/> for important information on 
+          correct and stable operation, as well as notes on performance and memory use.</para></warning>
+      <warning><para>The DNSSEC implementation of PowerDNS Authoritative Server 3.0 and 3.0.1 contains many issues regarding
+    CNAMES, wildcards and (in)secure delegations. If you use any of these, and you use DNSSEC you MUST upgrade to 3.1 or beyond!</para></warning>
+  </para>
 	<para>
 	  Known issues as of RC3 include:
 	<itemizedlist>
-	<listitem><para>Not all new features are fully documented yet</para></listitem>
-	</itemizedlist></para>
-      </warning></para>
+    <listitem><para>Not all new features are fully documented yet</para></listitem>
+	</itemizedlist>
+      </para>
       <para><note><para>Released on the 22nd of July 2011</para><para>RC1 released on the 4th of April 2011</para>
       <para>RC2 released on the 19th of April 2011</para>
       <para>RC3 released on the 19th of July 2011</para>
@@ -11230,6 +11287,7 @@ $ pdnssec rectify-zone powerdnssec.org
   </section>
   <section id="ksk-rollover"><title>KSK rollover</title>
   <para>
+  .. pdnssec add-zone-key ZONE ksk ..
   .. pdnssec show-zone ZONE and communicate duplicate DS ..
   .. pdnssec activate-zone-key ZONE next-key-id ..
   .. pdnssec deactivate-zone-key ZONE prev-key-id ..
@@ -11242,9 +11300,14 @@ $ pdnssec rectify-zone powerdnssec.org
   </para>
   </section>
   <section id="nsec3-change"><title>NSEC(3) change</title>
+  <para>This section describes how to change NSEC(3) parameters when they are already set.</para>
+  <para><warning><para>The following instructions might not be correct or complete!</para></warning></para>
   <para>
-  .. pdnssec show-zone ZONE and communicate duplicate DS ..
-  .. pdnssec set-nsec3 'parameters' ZONE
+    .. pdnssec set-nsec3 ZONE 'parameters'
+    .. pdnssec show-zone ZONE and communicate duplicate DS ..
+  </para>
+  <para>
+    For further details, please see <xref linkend="pdnssec"/>.
   </para>
   </section>
   </section>
