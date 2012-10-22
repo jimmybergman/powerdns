@@ -16,3 +16,5 @@
 /dnsreplay
 /dnsbulktest
 /rec_control
+/nsec3dig
+/bind-dnssec.schema.sqlite3.sql.h

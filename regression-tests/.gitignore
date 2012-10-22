@@ -16,3 +16,5 @@ real_result
 /*.controlsocket
 /pdns-*.conf
 /*.sqlite3
+/*.com-slave
+/named-slave.conf
