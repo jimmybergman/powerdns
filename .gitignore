@@ -29,3 +29,4 @@ codedocs/Makefile.in
 /config.status
 /libtool
 /compile
+/.tags*
