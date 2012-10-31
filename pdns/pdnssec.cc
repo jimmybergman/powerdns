@@ -164,9 +164,6 @@ void rectifyZone(DNSSECKeeper& dk, const std::string& zone)
           break;
         }
       } while(chopOff(shorter));
-
-      if(dsnames.count(qname))
-        auth=true;
     }
 
     if(haveNSEC3)
@@ -175,13 +172,19 @@ void rectifyZone(DNSSECKeeper& dk, const std::string& zone)
         hashed=toLower(toBase32Hex(hashQNameWithSalt(ns3pr.d_iterations, ns3pr.d_salt, qname)));
         if(g_verbose)
           cerr<<"'"<<qname<<"' -> '"<< hashed <<"'"<<endl;
+        sd.db->updateDNSSECOrderAndAuthAbsolute(sd.domain_id, qname, hashed, auth);
       }
-      sd.db->updateDNSSECOrderAndAuthAbsolute(sd.domain_id, qname, hashed, auth);
-      if((!auth || dsnames.count(qname)) && realrr)
+      else
+        sd.db->nullifyDNSSECOrderNameAndUpdateAuth(sd.domain_id, qname, auth);
+      if(realrr)
       {
-        sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "NS");
-        sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "A");
-        sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "AAAA");
+        if (dsnames.count(qname))
+          sd.db->setDNSSECAuthOnDsRecord(sd.domain_id, qname);
+        if (!auth || nsset.count(qname)) {
+          sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "NS");
+          sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "A");
+          sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "AAAA");
+        }
       }
     }
     else // NSEC
@@ -189,15 +192,16 @@ void rectifyZone(DNSSECKeeper& dk, const std::string& zone)
       if(realrr)
       {
         sd.db->updateDNSSECOrderAndAuth(sd.domain_id, zone, qname, auth);
-        if(!auth || dsnames.count(qname))
-        {
+        if (dsnames.count(qname))
+          sd.db->setDNSSECAuthOnDsRecord(sd.domain_id, qname);
+        if (!auth || nsset.count(qname)) {
           sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "A");
           sd.db->nullifyDNSSECOrderNameAndAuth(sd.domain_id, qname, "AAAA");
         }
       }
       else
       {
-        sd.db->nullifyDNSSECOrderName(sd.domain_id, qname);
+        sd.db->nullifyDNSSECOrderNameAndUpdateAuth(sd.domain_id, qname, auth);
       }
     }
 
@@ -272,6 +276,12 @@ int checkZone(UeberBackend *B, const std::string& zone)
   uint64_t numrecords=0, numerrors=0, numwarnings=0;
   
   while(sd.db->get(rr)) {
+    if(!endsOn(rr.qname, zone)) {
+      cout<<"[Warning] The record "<<rr.qname<<" with type "<<rr.qtype.getName()<<" in zone "<<zone<<" is out-of-zone."<<endl;
+      numwarnings++;
+      continue;
+    }
+
     if(!rr.qtype.getCode())
       continue;
     
