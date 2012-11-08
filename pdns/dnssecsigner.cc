@@ -20,6 +20,7 @@
 #include <boost/foreach.hpp>
 #include "md5.hh"
 #include "dnsseckeeper.hh"
+#include "dns_random.hh"
 #include "lock.hh"
 
 /* this is where the RRSIGs begin, keys are retrieved,
@@ -34,7 +35,7 @@ int getRRSIGsForRRSET(DNSSECKeeper& dk, const std::string& signer, const std::st
 
   rrc.d_labels=countLabels(signQName); 
   rrc.d_originalttl=signTTL; 
-  rrc.d_siginception=getCurrentInception();;
+  rrc.d_siginception=getCurrentInception(3600); // 1 hour safety margin, we start dishing out new week after an hour
   rrc.d_sigexpire = rrc.d_siginception + 14*86400; // XXX should come from zone metadata
   rrc.d_signer = toLower(signer);
   rrc.d_tag = 0;
@@ -141,9 +142,10 @@ void fillOutRRSIG(DNSSECPrivateKey& dpk, const std::string& signQName, RRSIGReco
 
   if(doCache) {
     WriteLock l(&g_signatures_lock);
-    unsigned int weekno = time(0) / (86400*7);  // we just spent milliseconds doing a signature, microsecond more won't kill us
+    /* we add some jitter here so not all your slaves start pruning their caches at the very same millisecond */
+    unsigned int weekno = (time(0) - dns_random(3600)) / (86400*7);  // we just spent milliseconds doing a signature, microsecond more won't kill us
   
-    if(g_cacheweekno != weekno) {  // blunt but effective (C) Habbie
+    if(g_cacheweekno < weekno) {  // blunt but effective (C) Habbie
       g_signatures.clear();
       g_cacheweekno = weekno;
     }

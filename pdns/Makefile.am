@@ -66,7 +66,7 @@ pdns_server_CPPFLAGS = $(AM_CPPFLAGS)
 
 if BOTAN110
 pdns_server_SOURCES += botan110signers.cc botansigners.cc
-pdns_server_LDADD += $(BOTAN110_LIBS) -lgmp
+pdns_server_LDADD += $(BOTAN110_LIBS) -lgmp -lrt
 pdns_server_CPPFLAGS += $(BOTAN110_CFLAGS)
 endif
 
@@ -94,7 +94,10 @@ pdnssec_SOURCES=pdnssec.cc dbdnsseckeeper.cc sstuff.hh dnsparser.cc dnsparser.hh
 	backends/gsql/gsqlbackend.cc \
 	backends/gsql/gsqlbackend.hh backends/gsql/ssql.hh zoneparser-tng.cc \
 	dynlistener.cc dns.cc randombackend.cc dnssecsigner.cc polarrsakeyinfra.cc md5.cc \
-	signingpipe.cc dnslabeltext.cc ednssubnet.cc cachecleaner.hh
+	signingpipe.cc dnslabeltext.cc ednssubnet.cc cachecleaner.hh \
+	aes/aescpp.h \
+	aes/aescrypt.c aes/aes.h aes/aeskey.c aes/aes_modes.c aes/aesopt.h \
+	aes/aestab.c aes/aestab.h aes/brg_endian.h aes/brg_types.h aes/dns_random.cc 
 
 
 pdnssec_LDFLAGS=@moduleobjects@ @modulelibs@ @DYNLINKFLAGS@ @LIBDL@ @THREADFLAGS@  $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_SERIALIZATION_LDFLAGS)
@@ -103,7 +106,7 @@ pdnssec_CPPFLAGS = $(AM_CPPFLAGS)
 
 if BOTAN110
 pdnssec_SOURCES += botan110signers.cc botansigners.cc
-pdnssec_LDADD += $(BOTAN110_LIBS) -lgmp
+pdnssec_LDADD += $(BOTAN110_LIBS) -lgmp -lrt
 pdnssec_CPPFLAGS += $(BOTAN110_CFLAGS)
 endif
 
