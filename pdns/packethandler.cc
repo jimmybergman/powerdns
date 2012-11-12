@@ -613,13 +613,13 @@ void PacketHandler::addNSEC3(DNSPacket *p, DNSPacket *r, const string& target, c
   }
   
   // wildcard denial
-  if (mode == 4) {
+  if (mode == 2 || mode == 4) {
     unhashed=dotConcat("*", closest);
 
     hashed=hashQNameWithSalt(ns3rc.d_iterations, ns3rc.d_salt, unhashed);
     // L<<"3 hash: "<<toBase32Hex(hashed)<<" "<<unhashed<<endl;
     
-    getNSEC3Hashes(narrow, sd.db, sd.domain_id,  hashed, true, unhashed, before, after);
+    getNSEC3Hashes(narrow, sd.db, sd.domain_id,  hashed, (mode != 2), unhashed, before, after);
     DLOG(L<<"Done calling for '*', hashed: '"<<toBase32Hex(hashed)<<"' before='"<<toBase32Hex(before)<<"', after='"<<toBase32Hex(after)<<"'"<<endl);
     emitNSEC3( ns3rc, sd, unhashed, before, after, target, r, mode);
   }
@@ -832,6 +832,11 @@ void PacketHandler::synthesiseRRSIGs(DNSPacket* p, DNSPacket* r)
     if(!rr.auth) 
       continue;
     
+    // make sure all fields are present in the SOA content
+    if(rr.qtype.getCode() == QType::SOA) {
+      rr.content = serializeSOAData(sd);
+    }
+ 
     // this deals with the 'prio' mismatch!
     if(rr.qtype.getCode()==QType::MX || rr.qtype.getCode() == QType::SRV) {  
       rr.content = lexical_cast<string>(rr.priority) + " " + rr.content;
