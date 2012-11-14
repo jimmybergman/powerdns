@@ -23,6 +23,7 @@
 #include "arguments.hh"
 #include "dns.hh"
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 
 extern StatBag S;
 
@@ -149,7 +150,6 @@ string StatWebServer::makePercentage(const double& val)
 
 string StatWebServer::indexfunction(const map<string,string> &varmap, void *ptr, bool *custom)
 {
-
   StatWebServer *sws=static_cast<StatWebServer *>(ptr);
   map<string,string>rvarmap=varmap;
   if(!rvarmap["resetring"].empty()){
@@ -226,12 +226,53 @@ string StatWebServer::indexfunction(const map<string,string> &varmap, void *ptr,
   return ret.str();
 }
 
+string StatWebServer::jsonstat(const map<string,string> &varmap, void *ptr, bool *custom)
+{
+  *custom=1;
+  string ret="HTTP/1.1 200 OK\r\n"
+  "Date: Wed, 30 Nov 2011 22:01:15 GMT\r\n" // XXX FIXME real date!
+  "Server: PowerDNS/"VERSION"\r\n"
+  "Connection: close\r\n"
+  "Access-Control-Allow-Origin: *\r\n"
+  "Content-Type: application/json\r\n"
+  "\r\n" ;
+
+  typedef map<string,string> varmap_t;
+  varmap_t ourvarmap=varmap;
+  if(ourvarmap.empty()) {
+    vector<string> entries = S.getEntries();
+    BOOST_FOREACH(string& ent, entries) {
+      ourvarmap[ent];
+    }
+    ourvarmap["version"];
+  }
+
+
+  string variable, value;
+  ret+="{";
+  for(varmap_t::const_iterator iter = ourvarmap.begin(); iter != ourvarmap.end() ; ++iter) {
+    if(iter != ourvarmap.begin())
+      ret += ",";
+      
+    variable = iter->first;
+    if(variable == "version")
+      value = '"'+string(VERSION)+'"';
+    else 
+      value = lexical_cast<string>(S.read(variable));
+      
+    ret += '"'+ variable +"\": "+ value;
+  }
+  ret+="}";
+  return ret;
+}
+
 void StatWebServer::launch()
 {
   try {
     
     d_ws->setCaller(this);
     d_ws->registerHandler("",&indexfunction);
+    d_ws->registerHandler("jsonstat", &jsonstat);
     d_ws->go();
   }
   catch(...) {
