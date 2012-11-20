@@ -634,7 +634,7 @@ int TCPNameserver::doAXFR(const string &target, shared_ptr<DNSPacket> q, int out
   dt.set();
   int records=0;
   while(sd.db->get(rr)) {
-    if (rr.qtype.getCode() == QType::RRSIG)
+    if (rr.qtype.getCode() == QType::RRSIG || rr.qtype.getCode() == QType::NSEC || rr.qtype.getCode() == QType::NSEC3 || rr.qtype.getCode() == QType::NSEC3PARAM)
       continue;
     records++;
     if(securedZone && (rr.auth || (!NSEC3Zone && rr.qtype.getCode() == QType::NS) || rr.qtype.getCode() == QType::DS)) { // this is probably NSEC specific, NSEC3 is different
